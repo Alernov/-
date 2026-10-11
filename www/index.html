@@ -1,0 +1,1842 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+</head>
+<body>
+<title>Смета мастера</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@500;600&family=Onest:wght@400;500;600;700&family=Oswald:wght@500;600&display=swap">
+<style>
+/* Layout: a drafting-table look. Blueprint grid ground, a tape-measure ruler under the header and between sections,
+   price-tag labels on cards. The estimate is a receipt panel (bottom sheet on phones, side column on desktop). */
+:root {
+  --bg: #EAF0F5;
+  --grid: #D9E3EB;
+  --surface: #FFFFFF;
+  --surface-2: #DDE6EE;
+  --ink: #0D2238;
+  --muted: #4F6579;
+  --line: #B7C6D3;
+  --edge: #0D2238;
+  --tick: rgba(13, 34, 56, 0.55);
+  --accent: #FFC21A;
+  --accent-ink: #1B1500;
+  --accent-soft: rgba(255, 194, 26, 0.22);
+  --accent-text: #7A4F00;
+  --btn-shadow: #0D2238;
+  --tag: #FFF6D6;
+  --link: #0A58B0;
+  --ok: #14703F;
+  --danger: #B3261E;
+  --warn-bg: #FFEFB8;
+  --warn-ink: #5C3D00;
+  --card-shadow: rgba(13, 34, 56, 0.14);
+  --dock-bg: #0D2238;
+  --dock-ink: #EAF2F8;
+  --dock-hi: #FFC21A;
+  --shade: rgba(6, 18, 30, 0.55);
+  --shadow: 0 -10px 34px rgba(13, 34, 56, 0.22);
+  --f-body: "Onest", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --f-display: "Oswald", "Arial Narrow", "Roboto Condensed", sans-serif;
+  --f-mono: "JetBrains Mono", ui-monospace, Menlo, Consolas, monospace;
+  --top-h: 150px;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0A1E33;
+    --grid: #12314F;
+    --surface: #0F2A45;
+    --surface-2: #173A5C;
+    --ink: #E8F1F8;
+    --muted: #8FAAC2;
+    --line: #28506F;
+    --edge: #4A7BA3;
+    --tick: rgba(143, 170, 194, 0.75);
+    --accent-soft: rgba(255, 194, 26, 0.16);
+    --accent-text: #FFC21A;
+    --btn-shadow: #0A1E33;
+    --tag: rgba(255, 194, 26, 0.1);
+    --link: #8CC4FF;
+    --ok: #5CD18F;
+    --danger: #FF8F86;
+    --warn-bg: rgba(255, 194, 26, 0.14);
+    --warn-ink: #FFD76B;
+    --card-shadow: rgba(0, 0, 0, 0.35);
+    --dock-bg: #FFC21A;
+    --dock-ink: #1B1500;
+    --dock-hi: #1B1500;
+    --shade: rgba(2, 10, 18, 0.66);
+    --shadow: 0 -10px 34px rgba(0, 0, 0, 0.55);
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0A1E33;
+  --grid: #12314F;
+  --surface: #0F2A45;
+  --surface-2: #173A5C;
+  --ink: #E8F1F8;
+  --muted: #8FAAC2;
+  --line: #28506F;
+  --edge: #4A7BA3;
+  --tick: rgba(143, 170, 194, 0.75);
+  --accent-soft: rgba(255, 194, 26, 0.16);
+  --accent-text: #FFC21A;
+  --btn-shadow: #0A1E33;
+  --tag: rgba(255, 194, 26, 0.1);
+  --link: #8CC4FF;
+  --ok: #5CD18F;
+  --danger: #FF8F86;
+  --warn-bg: rgba(255, 194, 26, 0.14);
+  --warn-ink: #FFD76B;
+  --card-shadow: rgba(0, 0, 0, 0.35);
+  --dock-bg: #FFC21A;
+  --dock-ink: #1B1500;
+  --dock-hi: #1B1500;
+  --shade: rgba(2, 10, 18, 0.66);
+  --shadow: 0 -10px 34px rgba(0, 0, 0, 0.55);
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body {
+  background-color: var(--bg);
+  background-image:
+    linear-gradient(var(--grid) 1px, transparent 1px),
+    linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+  background-size: 28px 28px;
+  color: var(--ink);
+  font-family: var(--f-body);
+  font-size: 15px;
+  line-height: 1.45;
+  -webkit-tap-highlight-color: transparent;
+}
+body.lock { overflow: hidden; }
+h1, h2, h3, h4, p, ul, dl, dd { margin: 0; padding: 0; }
+ul { list-style: none; }
+button, input, select, textarea { font: inherit; color: inherit; }
+button { cursor: pointer; }
+:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+.sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+.wrap { max-width: 1080px; margin: 0 auto; padding-inline: 16px; }
+
+/* buttons: stamped, with a hard bottom edge that presses in */
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+  height: 40px; min-width: 40px; padding: 0 14px;
+  border: 1.5px solid var(--edge); border-radius: 4px;
+  background: var(--surface); color: var(--ink);
+  font-weight: 600; font-size: 14px; white-space: nowrap;
+  box-shadow: 0 2px 0 var(--edge);
+  transition: transform 0.08s ease, box-shadow 0.08s ease;
+}
+.btn:active { transform: translateY(2px); box-shadow: 0 0 0 var(--edge); }
+.btn.icon { width: 40px; padding: 0; }
+.btn.sm { height: 36px; min-width: 36px; font-size: 13px; padding: 0 12px; }
+.btn.sm.icon { padding: 0; }
+.btn.primary { background: var(--accent); border-color: var(--btn-shadow); color: var(--accent-ink); box-shadow: 0 2px 0 var(--btn-shadow); }
+.btn.primary:active { box-shadow: 0 0 0 var(--btn-shadow); }
+.btn.wide { width: 100%; }
+.btn.big { height: 50px; font-size: 16px; }
+.btn.danger { color: var(--danger); border-color: var(--danger); box-shadow: 0 2px 0 var(--danger); }
+.btn:disabled { opacity: 0.4; cursor: not-allowed; box-shadow: none; }
+.btn svg, .link svg { flex: none; }
+.link {
+  background: none; border: 0; padding: 6px 0; min-height: 36px;
+  display: inline-flex; align-items: center; gap: 6px;
+  color: var(--link); font-weight: 600; font-size: 14px;
+}
+.link:hover { text-decoration: underline; text-underline-offset: 3px; }
+.in {
+  width: 100%; height: 42px; padding: 0 10px;
+  border: 1.5px solid var(--line); border-radius: 4px;
+  background: var(--bg); color: var(--ink);
+  font: 500 16px var(--f-mono);
+}
+.in:focus { outline: none; border-color: var(--edge); box-shadow: 0 0 0 3px var(--accent-soft); }
+.in.txt { font-family: var(--f-body); font-weight: 500; }
+.in.area { height: 84px; padding: 8px 10px; resize: vertical; font-family: var(--f-body); font-weight: 500; }
+select.in { font-family: var(--f-body); }
+.fld { display: grid; gap: 4px; min-width: 0; }
+.fld > span:first-child { font-size: 12px; color: var(--muted); font-weight: 500; }
+
+/* header */
+.top {
+  position: sticky; top: env(safe-area-inset-top, 0px); z-index: 20;
+  background: var(--bg);
+}
+.top::after {
+  content: ""; display: block; height: 12px;
+  background:
+    repeating-linear-gradient(90deg, var(--tick) 0 1px, transparent 1px 6px) 0 100% / 100% 5px no-repeat,
+    repeating-linear-gradient(90deg, var(--tick) 0 1.5px, transparent 1.5px 30px) 0 100% / 100% 12px no-repeat;
+}
+.top .wrap { padding-block: 10px 4px; display: grid; gap: 8px; }
+.top-row { display: flex; align-items: flex-start; gap: 8px; }
+.title-wrap { flex: 1; min-width: 0; display: grid; gap: 2px; }
+.title-wrap .in { font-family: var(--f-body); font-weight: 700; height: 40px; background: var(--surface); }
+.status { font-size: 11px; color: var(--muted); padding-left: 2px; min-height: 14px; }
+.status.ok { color: var(--ok); }
+.status.err { color: var(--danger); }
+.search { position: relative; }
+.search svg { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--muted); pointer-events: none; }
+.search .in { height: 46px; padding-left: 40px; font-family: var(--f-body); font-weight: 500; background: var(--surface); border-color: var(--edge); }
+.chips { display: flex; gap: 6px; overflow-x: auto; padding-block: 2px 8px; scrollbar-width: none; }
+.chips::-webkit-scrollbar { display: none; }
+.chip {
+  flex: none; height: 34px; padding: 0 12px;
+  border: 1.5px solid var(--line); border-radius: 3px;
+  background: var(--surface);
+  font: 500 13px var(--f-display); letter-spacing: 0.07em; text-transform: uppercase; white-space: nowrap;
+}
+.chip small { font: 500 11px var(--f-mono); color: var(--muted); margin-left: 6px; letter-spacing: 0; }
+.chip.on { background: var(--accent); border-color: var(--btn-shadow); color: var(--accent-ink); }
+.chip.on small { color: var(--accent-ink); opacity: 0.7; }
+
+/* layout */
+.layout { display: grid; grid-template-columns: minmax(0, 1fr); gap: 24px; padding-block: 12px 130px; }
+.hint { font-size: 13px; color: var(--muted); }
+.list-bar { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
+.list-bar .hint { flex: 1 1 220px; min-width: 0; }
+.results { display: grid; gap: 12px; min-width: 0; align-content: start; }
+.grp {
+  margin-top: 12px; display: flex; align-items: flex-end; gap: 12px;
+  font: 600 16px/1 var(--f-display); letter-spacing: 0.14em; text-transform: uppercase; color: var(--ink);
+}
+.grp::after {
+  content: ""; flex: 1; height: 10px; margin-bottom: -1px;
+  background:
+    repeating-linear-gradient(90deg, var(--tick) 0 1px, transparent 1px 6px) 0 100% / 100% 5px no-repeat,
+    repeating-linear-gradient(90deg, var(--tick) 0 1.5px, transparent 1.5px 30px) 0 100% / 100% 10px no-repeat;
+}
+
+/* catalog card */
+.card {
+  display: grid; gap: 8px; min-width: 0;
+  padding: 14px; background: var(--surface);
+  border: 1.5px solid var(--line); border-radius: 4px;
+  box-shadow: 3px 3px 0 var(--card-shadow);
+}
+.card:hover { border-color: var(--edge); }
+.card-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; }
+.card h3 { font-size: 16px; font-weight: 650; line-height: 1.3; min-width: 0; overflow-wrap: anywhere; }
+.price {
+  flex: none; display: grid; justify-items: end;
+  padding: 4px 8px 3px; text-align: right;
+  background: var(--tag); border: 1.5px dashed var(--edge); border-radius: 3px; color: var(--ink);
+}
+.price b { font: 600 16px/1.25 var(--f-mono); white-space: nowrap; font-variant-numeric: tabular-nums; }
+.price span { font: 500 11px var(--f-mono); color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em; }
+.price.own { background: var(--accent); border-style: solid; border-color: var(--btn-shadow); color: var(--accent-ink); }
+.price.own span { color: var(--accent-ink); opacity: 0.75; }
+.meta { font-size: 12px; color: var(--muted); }
+.meta-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.meta-row .link { padding: 0; min-height: 28px; font-size: 13px; flex: none; }
+.desc { font-size: 14px; }
+.tag {
+  justify-self: start; padding: 3px 8px; border-radius: 3px;
+  background: var(--warn-bg); color: var(--warn-ink); font-size: 12px; font-weight: 600;
+}
+.tag.acc { background: var(--accent-soft); color: var(--accent-text); }
+details summary { cursor: pointer; color: var(--link); font-size: 14px; font-weight: 600; padding: 4px 0; }
+.cond { display: grid; gap: 6px; padding: 6px 0 2px; font-size: 14px; color: var(--muted); }
+.cond b { color: var(--ink); font-weight: 600; }
+.card-act { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
+.step { display: inline-flex; align-items: center; border: 1.5px solid var(--btn-shadow); border-radius: 4px; overflow: hidden; background: var(--surface); }
+.step button { width: 40px; height: 38px; border: 0; background: var(--accent); color: var(--accent-ink); display: grid; place-items: center; }
+.step output { min-width: 46px; text-align: center; font: 600 15px var(--f-mono); }
+.empty { padding: 32px 16px; text-align: center; display: grid; gap: 10px; justify-items: center; }
+.empty strong { font: 600 20px var(--f-display); letter-spacing: 0.04em; text-transform: uppercase; }
+
+/* estimate panel: a receipt */
+.est {
+  position: fixed; left: 0; right: 0; bottom: 0; z-index: 40;
+  display: flex; flex-direction: column;
+  max-height: 88dvh; background: var(--surface);
+  border-top: 2px solid var(--edge); border-radius: 12px 12px 0 0;
+  box-shadow: var(--shadow);
+  transform: translateY(105%); visibility: hidden;
+  transition: transform 0.25s ease, visibility 0s linear 0.25s;
+}
+.est.open { transform: none; visibility: visible; transition: transform 0.25s ease; }
+.est-back { position: fixed; inset: 0; z-index: 35; background: var(--shade); border: 0; }
+.est-head { display: flex; align-items: center; gap: 8px; padding: 14px 16px 12px; border-bottom: 2px dashed var(--line); }
+.est-sum { flex: 1; min-width: 0; display: grid; justify-items: start; }
+.est-sum small { font: 500 12px var(--f-display); letter-spacing: 0.16em; text-transform: uppercase; color: var(--muted); }
+.est-sum strong {
+  font: 600 34px/1.1 var(--f-display); letter-spacing: 0.01em; overflow-wrap: anywhere;
+  background: linear-gradient(transparent 62%, var(--accent-soft) 62%);
+}
+.ask {
+  display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap;
+  margin: 10px 16px 0; padding: 10px 12px; border: 1.5px solid var(--danger); border-radius: 4px; font-size: 14px;
+}
+.ask div { display: flex; gap: 8px; }
+.est-body { flex: 1; overflow-y: auto; overscroll-behavior: contain; padding: 12px 16px; display: grid; gap: 12px; align-content: start; }
+.lines { display: grid; gap: 10px; }
+.line { display: grid; gap: 8px; padding: 12px; border: 1.5px solid var(--line); border-radius: 4px; background: var(--bg); }
+.line-head { display: flex; justify-content: space-between; gap: 10px; align-items: flex-start; }
+.line h4 { font-size: 15px; font-weight: 650; line-height: 1.3; overflow-wrap: anywhere; }
+.fields { display: grid; grid-template-columns: minmax(0, 1fr) 96px; gap: 10px; }
+.pbox { position: relative; display: block; }
+.pbox .in { padding-right: 40px; background: var(--surface); }
+.fields .in { background: var(--surface); }
+.reset {
+  position: absolute; right: 3px; top: 3px; width: 36px; height: 36px;
+  display: grid; place-items: center; border: 0; border-radius: 3px; background: var(--accent); color: var(--accent-ink);
+}
+.mods { display: flex; flex-wrap: wrap; gap: 6px; }
+.mods:empty { display: none; }
+.line-foot { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.ltot { font: 600 15px var(--f-mono); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.empty-note { font-size: 14px; color: var(--muted); padding: 6px 2px; }
+.totals { display: grid; gap: 0; padding-top: 4px; }
+.totals div { display: flex; justify-content: space-between; gap: 12px; padding: 8px 0; border-bottom: 2px dashed var(--line); }
+.totals dt { color: var(--muted); }
+.totals dd { font: 600 14px var(--f-mono); font-variant-numeric: tabular-nums; }
+.note { font-size: 12px; color: var(--muted); }
+.est-foot { padding: 10px 16px calc(12px + env(safe-area-inset-bottom, 0px)); border-top: 2px solid var(--edge); }
+
+[hidden] { display: none !important; }
+.dock {
+  position: fixed; z-index: 30; left: 12px; right: 12px;
+  bottom: calc(12px + env(safe-area-inset-bottom, 0px));
+  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  padding: 10px 16px; min-height: 58px; border: 2px solid var(--btn-shadow); border-radius: 6px;
+  background: var(--dock-bg); color: var(--dock-ink); text-align: left;
+  box-shadow: 0 4px 0 rgba(0, 0, 0, 0.3), 0 10px 28px rgba(0, 0, 0, 0.25);
+}
+.dock-l { display: grid; min-width: 0; }
+.dock-l small { font-size: 12px; opacity: 0.8; }
+.dock-l b { font: 600 24px/1.15 var(--f-display); color: var(--dock-hi); letter-spacing: 0.01em; }
+.dock-r { display: inline-flex; align-items: center; gap: 6px; font: 500 15px var(--f-display); letter-spacing: 0.08em; text-transform: uppercase; white-space: nowrap; }
+.dock.pulse { animation: pulse 0.35s ease; }
+@keyframes pulse { 40% { transform: scale(1.02); } }
+
+/* modal */
+.modal-wrap { position: fixed; inset: 0; z-index: 60; display: flex; align-items: flex-end; justify-content: center; background: var(--shade); }
+.modal {
+  width: 100%; max-width: 560px; max-height: 90dvh; overflow-y: auto; overscroll-behavior: contain;
+  background: var(--surface); border-top: 2px solid var(--edge); border-radius: 12px 12px 0 0;
+  padding: 16px 16px calc(18px + env(safe-area-inset-bottom, 0px));
+  display: grid; gap: 12px; align-content: start;
+}
+.m-head { display: flex; justify-content: space-between; gap: 12px; align-items: flex-start; }
+.m-head h2 { font: 600 24px/1.15 var(--f-display); letter-spacing: 0.03em; text-transform: uppercase; }
+.sub { font-size: 13px; color: var(--muted); overflow-wrap: anywhere; margin-top: 2px; }
+.m-h { font: 500 14px var(--f-display); letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted); margin-top: 4px; }
+.m-form { display: grid; gap: 12px; }
+.two { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+.m-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+.m-actions .btn { flex: 1; }
+.err { color: var(--danger); font-size: 13px; font-weight: 600; }
+.rows { display: grid; gap: 8px; }
+.chk { display: flex; align-items: flex-start; gap: 10px; padding: 10px 12px; border: 1.5px solid var(--line); border-radius: 4px; cursor: pointer; background: var(--surface); }
+.chk input { width: 20px; height: 20px; margin-top: 2px; accent-color: var(--accent); flex: none; }
+.chk-t { flex: 1; min-width: 0; display: grid; }
+.chk-t small { color: var(--muted); font-size: 12px; }
+.pct { font: 600 14px var(--f-mono); color: var(--accent-text); white-space: nowrap; }
+.rel { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 10px 12px; border: 1.5px solid var(--line); border-radius: 4px; }
+.rel div { min-width: 0; display: grid; }
+.rel .rel-act { display: flex; gap: 6px; flex: none; }
+.rel small { color: var(--muted); font-family: var(--f-mono); font-size: 12px; }
+.steps { display: grid; gap: 12px; counter-reset: s; }
+.steps li { display: grid; grid-template-columns: 30px minmax(0, 1fr); gap: 12px; }
+.steps li::before {
+  counter-increment: s; content: counter(s);
+  width: 30px; height: 30px; display: grid; place-items: center; border-radius: 3px;
+  background: var(--accent); color: var(--accent-ink); font: 600 16px var(--f-display);
+}
+.steps b { display: block; }
+.steps span { color: var(--muted); font-size: 14px; }
+.callout { padding: 10px 12px; border-radius: 4px; background: var(--warn-bg); color: var(--warn-ink); font-size: 13px; }
+.est-row { display: flex; align-items: stretch; gap: 8px; }
+.est-row .open { flex: 1; min-width: 0; text-align: left; padding: 12px; border: 1.5px solid var(--line); border-radius: 4px; background: var(--bg); display: grid; gap: 2px; }
+.est-row.cur .open { border-color: var(--btn-shadow); background: var(--tag); }
+.est-row b { overflow-wrap: anywhere; }
+.est-row small { color: var(--muted); font-family: var(--f-mono); font-size: 12px; }
+.est-row .btn { height: auto; min-height: 40px; }
+textarea.in { height: 160px; padding: 10px; resize: vertical; font-size: 14px; }
+textarea.in.area { height: 84px; font-size: 15px; }
+
+.toast {
+  position: fixed; left: 50%; transform: translateX(-50%); z-index: 70;
+  bottom: calc(88px + env(safe-area-inset-bottom, 0px));
+  max-width: calc(100% - 32px); padding: 10px 16px; border-radius: 4px;
+  background: var(--ink); color: var(--bg); font-size: 14px; font-weight: 600;
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.3);
+}
+
+/* tabs and orders */
+.tabs { display: grid; grid-template-columns: 1fr 1fr; border: 1.5px solid var(--edge); border-radius: 4px; overflow: hidden; background: var(--surface); }
+.tab {
+  height: 40px; border: 0; background: transparent; display: flex; align-items: center; justify-content: center; gap: 8px;
+  font: 600 16px var(--f-display); letter-spacing: 0.14em; text-transform: uppercase;
+}
+.tab + .tab { border-left: 1.5px solid var(--edge); }
+.tab[aria-selected="true"] { background: var(--accent); color: var(--accent-ink); }
+.tab small { font: 600 11px var(--f-mono); letter-spacing: 0; padding: 1px 6px; border-radius: 3px; background: var(--ink); color: var(--bg); }
+.tab small:empty { display: none; }
+.head-block { display: grid; gap: 8px; }
+.seg { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; }
+.seg .chip { padding: 0 6px; }
+.ord-nav { display: flex; align-items: center; gap: 8px; padding-bottom: 6px; }
+.ord-label { flex: 1; min-width: 0; display: grid; justify-items: center; text-align: center; }
+.ord-label b { font: 600 20px/1.15 var(--f-display); letter-spacing: 0.04em; text-transform: uppercase; overflow-wrap: anywhere; }
+.orders { max-width: 760px; padding-block: 12px 130px; display: grid; gap: 14px; min-width: 0; align-content: start; }
+.stats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+.stat {
+  display: grid; gap: 2px; min-width: 0; padding: 10px 12px;
+  background: var(--surface); border: 1.5px solid var(--line); border-radius: 4px; box-shadow: 3px 3px 0 var(--card-shadow);
+}
+.stat small { font: 500 12px var(--f-display); letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted); }
+.stat strong { font: 600 22px/1.15 var(--f-display); overflow-wrap: anywhere; }
+.stat span { font-size: 12px; color: var(--muted); }
+.stat.main { grid-column: 1 / -1; background: var(--accent); border-color: var(--btn-shadow); color: var(--accent-ink); }
+.stat.main small, .stat.main span { color: var(--accent-ink); opacity: 0.8; }
+.stat.main strong { font-size: 42px; }
+.chartbox { display: grid; gap: 8px; padding: 12px; min-width: 0; background: var(--surface); border: 1.5px solid var(--line); border-radius: 4px; }
+.chartbox h3 { font: 500 14px var(--f-display); letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted); }
+.bars { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); gap: 4px; height: 150px; border-bottom: 2px solid var(--edge); }
+.col { height: 100%; min-width: 0; display: flex; flex-direction: column; justify-content: flex-end; }
+.col .val { height: 14px; font: 600 10px/14px var(--f-mono); text-align: center; color: var(--muted); white-space: nowrap; overflow: hidden; }
+.stack { display: flex; flex-direction: column; justify-content: flex-end; min-height: 0; }
+.stack .p { border: 1.5px dashed var(--edge); border-bottom: 0; }
+.stack .d { background: var(--accent); border: 1.5px solid var(--btn-shadow); }
+.axis { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); gap: 4px; }
+.axis span { font: 500 11px var(--f-mono); color: var(--muted); text-align: center; overflow: visible; white-space: nowrap; }
+.legend { display: flex; gap: 14px; flex-wrap: wrap; font-size: 12px; color: var(--muted); }
+.legend i { display: inline-block; width: 12px; height: 12px; vertical-align: -2px; margin-right: 6px; }
+.legend .sd { background: var(--accent); border: 1.5px solid var(--btn-shadow); }
+.legend .sp { border: 1.5px dashed var(--edge); }
+.ord-add-top { display: none; }
+.filters { display: flex; gap: 6px; flex-wrap: wrap; }
+.ord {
+  display: grid; grid-template-columns: 48px minmax(0, 1fr); gap: 6px; padding: 12px 12px 12px 6px; min-width: 0;
+  background: var(--surface); border: 1.5px solid var(--line); border-radius: 4px; box-shadow: 3px 3px 0 var(--card-shadow);
+}
+.doneck { position: relative; width: 48px; height: 48px; display: grid; place-items: center; cursor: pointer; }
+.doneck input { position: absolute; inset: 0; width: 100%; height: 100%; margin: 0; opacity: 0; cursor: pointer; }
+.ck { width: 30px; height: 30px; display: grid; place-items: center; border: 2px solid var(--edge); border-radius: 4px; background: var(--surface); color: var(--accent-ink); }
+.ck svg { opacity: 0; }
+.doneck input:checked + .ck { background: var(--accent); border-color: var(--btn-shadow); }
+.doneck input:checked + .ck svg { opacity: 1; }
+.doneck input:focus-visible + .ck { outline: 3px solid var(--accent); outline-offset: 2px; }
+.ord-body { display: grid; gap: 5px; min-width: 0; }
+.ord-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; }
+.ord-addr { font-size: 16px; font-weight: 650; line-height: 1.3; overflow-wrap: anywhere; }
+.ord-sum { font: 600 16px var(--f-mono); white-space: nowrap; font-variant-numeric: tabular-nums; }
+.ord.done .ord-addr { color: var(--muted); text-decoration: line-through; text-decoration-thickness: 1px; }
+.ord.done .ord-sum { color: var(--ok); }
+.ord-meta { display: flex; flex-wrap: wrap; gap: 2px 12px; font-size: 13px; color: var(--muted); }
+.ord-phone { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.ord-phone a { color: var(--link); font: 600 14px var(--f-mono); }
+.ord-works { font-size: 14px; overflow-wrap: anywhere; white-space: pre-line; }
+.ord-foot { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.tag.ok { background: rgba(23, 120, 74, 0.14); color: var(--ok); }
+.ord-dock { justify-content: center; gap: 10px; color: var(--dock-hi); font: 600 18px var(--f-display); letter-spacing: 0.12em; text-transform: uppercase; }
+.est-foot { display: grid; gap: 8px; }
+
+@media (min-width: 900px) {
+  .layout { grid-template-columns: minmax(0, 1fr) 400px; padding-bottom: 40px; align-items: start; }
+  .dock, .est-back, .est-close { display: none !important; }
+  .est {
+    position: sticky; top: calc(var(--top-h) + env(safe-area-inset-top, 0px) + 12px); bottom: auto; left: auto; right: auto;
+    transform: none; visibility: visible; z-index: 1;
+    border: 1.5px solid var(--edge); border-radius: 4px;
+    box-shadow: 5px 5px 0 var(--card-shadow);
+    max-height: calc(100dvh - var(--top-h) - 28px);
+  }
+  .modal-wrap { align-items: center; }
+  .modal { border: 1.5px solid var(--edge); border-radius: 4px; }
+  .toast { bottom: 24px; }
+  .ord-add-top { display: inline-flex; }
+  .orders { padding-bottom: 40px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .est, .est.open { transition: none; }
+  .dock.pulse { animation: none; }
+  .btn { transition: none; }
+}
+</style>
+
+<header class="top" id="top">
+  <div class="wrap">
+    <nav class="tabs" role="tablist" aria-label="Разделы приложения">
+      <button class="tab" id="tabPrice" type="button" role="tab" aria-selected="true">Прайс</button>
+      <button class="tab" id="tabOrders" type="button" role="tab" aria-selected="false">Заказы<small id="ordBadge"></small></button>
+    </nav>
+    <div class="head-block" id="priceHead">
+    <div class="top-row">
+      <label class="title-wrap" for="estTitle">
+        <span class="sr">Название чека</span>
+        <input class="in" id="estTitle" maxlength="80" autocomplete="off" placeholder="Название чека">
+        <small class="status" id="status" aria-live="polite"></small>
+      </label>
+      <button class="btn" id="btnMy" type="button" aria-label="Мои чеки">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
+        <span>Мои чеки</span>
+      </button>
+      <button class="btn icon primary" id="btnNew" type="button" aria-label="Новый чек" title="Новый чек">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5M12 11v6M9 14h6"/></svg>
+      </button>
+      <button class="btn icon" id="btnMemo" type="button" aria-label="Памятка" title="Памятка">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8h.01"/></svg>
+      </button>
+    </div>
+    <label class="search" for="q">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+      <span class="sr">Найти работу или проблему</span>
+      <input class="in" id="q" type="search" placeholder="Найти работу или проблему" autocomplete="off" inputmode="search" enterkeyhint="search">
+    </label>
+    <nav class="chips" id="chips" aria-label="Разделы прайса"></nav>
+    </div>
+    <div class="head-block" id="ordHead" hidden>
+      <div class="seg" id="seg" role="group" aria-label="Период"></div>
+      <div class="ord-nav">
+        <button class="btn icon" id="ordPrev" type="button" aria-label="Предыдущий период">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 6-6 6 6 6"/></svg>
+        </button>
+        <div class="ord-label"><b id="ordLabel"></b><small class="status" id="ordStatus" aria-live="polite"></small></div>
+        <button class="btn icon" id="ordNext" type="button" aria-label="Следующий период">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 6 6 6-6 6"/></svg>
+        </button>
+        <button class="btn sm" id="ordToday" type="button">Сегодня</button>
+      </div>
+    </div>
+  </div>
+</header>
+
+<div class="wrap layout" id="pagePrice">
+  <main class="results" id="results">
+    <div class="list-bar">
+      <p class="hint">Цены примерные. Нажмите «Изменить» в карточке, чтобы поправить или удалить позицию.</p>
+      <button class="btn sm" id="btnAddItem" type="button">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
+        Добавить в прайс
+      </button>
+    </div>
+    <div id="list" class="results"></div>
+    <button class="btn wide" id="more" type="button" hidden>Показать ещё</button>
+    <button class="link" id="btnHidden" type="button" hidden>Удалённые из прайса</button>
+    <div class="empty" id="empty" hidden>
+      <strong>Ничего не найдено</strong>
+      <span class="hint">Попробуйте другое слово: смеситель, розетка, унитаз, полка, люстра.</span>
+      <button class="btn" id="btnReset" type="button">Сбросить поиск</button>
+    </div>
+  </main>
+
+  <aside class="est" id="est" aria-label="Чек мастера" tabindex="-1">
+    <div class="est-head">
+      <div class="est-sum"><small>Итого</small><strong id="estTotal">0 ₽</strong></div>
+      <button class="btn icon" id="btnClear" type="button" aria-label="Очистить чек" title="Очистить чек" disabled>
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 12a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-12M9 7V4h6v3"/></svg>
+      </button>
+      <button class="btn icon est-close" id="btnEstClose" type="button" aria-label="Свернуть чек">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
+      </button>
+    </div>
+    <div class="ask" id="clearAsk" role="alertdialog" aria-label="Очистить чек" hidden>
+      <span>Удалить все работы из чека?</span>
+      <div>
+        <button class="btn sm" id="clearNo" type="button">Отмена</button>
+        <button class="btn sm danger" id="clearYes" type="button">Очистить</button>
+      </div>
+    </div>
+    <div class="est-body">
+      <button class="btn wide" id="btnCustom" type="button">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
+        Своя позиция
+      </button>
+      <ul class="lines" id="estList"></ul>
+      <p class="empty-note" id="estEmpty">Чек пуст. Найдите работу в прайсе и нажмите «В чек» или добавьте свою позицию.</p>
+      <dl class="totals">
+        <div><dt>Работы</dt><dd id="baseTotal">0 ₽</dd></div>
+        <div><dt>Наценки</dt><dd id="markTotal">0 ₽</dd></div>
+      </dl>
+      <p class="note">Итог считается по добавленным работам. Материалы и запчасти оплачиваются отдельно.</p>
+    </div>
+    <div class="est-foot">
+      <button class="btn primary wide big" id="btnCopy" type="button" disabled>
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="8" y="8" width="12" height="12" rx="2"/><path d="M16 8V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h2"/></svg>
+        Скопировать чек
+      </button>
+      <button class="btn wide" id="btnToOrder" type="button" disabled>Создать заказ из чека</button>
+    </div>
+  </aside>
+</div>
+
+<section class="wrap orders" id="pageOrders" aria-label="Заказы" hidden>
+  <div class="stats" id="ordStats"></div>
+  <div class="chartbox" id="ordChart" hidden></div>
+  <div class="list-bar">
+    <div class="filters" id="ordFilter" role="group" aria-label="Статус заказов"></div>
+    <button class="btn primary ord-add-top" id="ordAddTop" type="button">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
+      Новый заказ
+    </button>
+  </div>
+  <div class="results" id="ordList"></div>
+</section>
+
+<button class="est-back" id="estBack" type="button" aria-label="Закрыть чек" hidden></button>
+<button class="dock" id="dock" type="button" aria-controls="est">
+  <span class="dock-l"><small id="dockCount">Чек пуст</small><b id="dockTotal">0 ₽</b></span>
+  <span class="dock-r">Открыть чек
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 15 6-6 6 6"/></svg>
+  </span>
+</button>
+
+<button class="dock ord-dock" id="ordAdd" type="button" hidden>
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
+  Новый заказ
+</button>
+
+<div class="modal-wrap" id="modal" hidden>
+  <div class="modal" id="modalBody" role="dialog" aria-modal="true" aria-labelledby="mTitle"></div>
+</div>
+<div class="toast" id="toast" role="status" hidden></div>
+
+<script>
+(function () {
+  'use strict';
+
+  /*DATA*/
+  var SECS = [
+    ['plumb', 'Сантехника'],
+    ['elec', 'Электрика'],
+    ['furn', 'Сборка мебели'],
+    ['fix', 'Мелкий ремонт и монтаж'],
+    ['common', 'Общие работы'],
+    ['mine', 'Свои работы']
+  ];
+
+  /* section, group, id, name, unit, price, what is included, options {a: agree first, c: extra condition, t: search words} */
+  var RAW = [
+    ['plumb', 'Смесители', 'p_mix_dem', 'Демонтаж смесителя', 'шт', 600, 'Перекрыть воду, снять старый смеситель и подводки.', { t: 'кран снять' }],
+    ['plumb', 'Смесители', 'p_mix_set', 'Установка смесителя на готовое место', 'шт', 1200, 'Сборка смесителя, монтаж на раковину или ванну, подключение подводки, проверка на течь.', { t: 'кран поставить' }],
+    ['plumb', 'Смесители', 'p_mix_rep', 'Замена смесителя (демонтаж и монтаж)', 'шт', 1800, 'Снять старый смеситель, установить новый, подключить, проверить на течь.', { t: 'кран поменять заменить' }],
+    ['plumb', 'Смесители', 'p_mix_pull', 'Установка кухонного смесителя с выдвижной лейкой', 'шт', 2200, 'Монтаж смесителя, грузик на шланг, подключение подводок, проверка.', { t: 'кран кухня мойка' }],
+    ['plumb', 'Смесители', 'p_mix_wall', 'Установка настенного смесителя на ванну', 'шт', 3000, 'Монтаж эксцентриков, смесителя и лейки по уровню, проверка на течь.', { c: 'Если нужно заменить трубы или переделать выводы воды, это считается отдельно.', t: 'кран ванна душ' }],
+    ['plumb', 'Смесители', 'p_mix_cart', 'Замена картриджа или кран-буксы', 'шт', 1000, 'Разобрать смеситель, заменить картридж, собрать и проверить.', { t: 'течёт капает кран' }],
+    ['plumb', 'Смесители', 'p_flex', 'Замена гибкой подводки', 'пара', 500, 'Перекрыть воду, заменить подводку, проверить соединения.', { t: 'шланг' }],
+    ['plumb', 'Раковины и унитазы', 'p_sink_set', 'Установка раковины с тумбой', 'шт', 3500, 'Сборка тумбы, монтаж раковины и сифона, подключение, герметизация шва.', { t: 'мойдодыр умывальник' }],
+    ['plumb', 'Раковины и унитазы', 'p_sink_tul', 'Установка раковины на пьедестале («тюльпан»)', 'шт', 3000, 'Монтаж раковины и пьедестала, сифона, подключение к воде.', { t: 'умывальник' }],
+    ['plumb', 'Раковины и унитазы', 'p_siphon', 'Замена сифона раковины или мойки', 'шт', 900, 'Снять старый сифон, установить новый, проверить на течь.', { t: 'слив запах' }],
+    ['plumb', 'Раковины и унитазы', 'p_siphon_bath', 'Замена сифона и слива-перелива ванны', 'шт', 1800, 'Демонтаж старого слива, монтаж нового, проверка на течь.', { t: 'ванна слив' }],
+    ['plumb', 'Раковины и унитазы', 'p_wc_set', 'Установка унитаза-компакт', 'шт', 3500, 'Монтаж на готовое место, подключение воды, проверка смыва.', { t: 'туалет' }],
+    ['plumb', 'Раковины и унитазы', 'p_wc_rep', 'Замена унитаза (демонтаж и монтаж)', 'шт', 4500, 'Демонтаж старого, установка нового, подключение, герметизация.', { c: 'Если пол под унитазом повреждён или нужен новый фланец, это отдельная работа.', t: 'туалет поменять' }],
+    ['plumb', 'Раковины и унитазы', 'p_wc_arm', 'Замена арматуры бачка', 'шт', 1500, 'Снять старую арматуру, установить новую, отрегулировать набор и смыв.', { t: 'бачок течёт сливной' }],
+    ['plumb', 'Подключение техники', 'p_wm', 'Подключение стиральной машины', 'шт', 1500, 'Подключение воды и слива, выравнивание, пробный запуск.', { c: 'Если нет готового вывода воды и слива, монтаж точки подключения считается отдельно.', t: 'стиралка' }],
+    ['plumb', 'Подключение техники', 'p_dw', 'Подключение посудомоечной машины', 'шт', 2200, 'Подключение воды и слива, выравнивание, пробный запуск.', { c: 'Если нет готового вывода воды и слива, монтаж точки подключения считается отдельно.', t: 'посудомойка' }],
+    ['plumb', 'Подключение техники', 'p_filter', 'Установка фильтра для воды под мойкой', 'компл.', 2500, 'Монтаж фильтра и крана питьевой воды, подключение, промывка.', { t: 'очистка воды' }],
+    ['plumb', 'Подключение техники', 'p_boiler', 'Установка водонагревателя до 80 л', 'шт', 4500, 'Монтаж на стену на анкеры, подключение воды, предохранительный клапан.', { c: 'Подключение к электросети считается отдельно.', t: 'бойлер' }],
+    ['plumb', 'Краны, трубы и засоры', 'p_angle', 'Замена углового вентиля', 'шт', 700, 'Перекрыть воду, снять старый вентиль, поставить новый.', { t: 'кран угловой' }],
+    ['plumb', 'Краны, трубы и засоры', 'p_leak', 'Устранение течи на резьбовом соединении', 'шт', 1000, 'Найти место течи, переуплотнить соединение, проверить.', { t: 'течь капает подтекает' }],
+    ['plumb', 'Краны, трубы и засоры', 'p_pipe', 'Замена участка трубы (пластик, металлопластик)', 'м', 900, 'За погонный метр, включая муфты и фитинги.', { t: 'труба прорыв' }],
+    ['plumb', 'Краны, трубы и засоры', 'p_clean_s', 'Прочистка сифона', 'шт', 800, 'Разобрать сифон, очистить, собрать, проверить слив.', { t: 'засор не уходит вода' }],
+    ['plumb', 'Краны, трубы и засоры', 'p_clean', 'Прочистка засора тросом', 'шт', 1800, 'Ручной сантехнический трос, прочистка внутри квартиры до стояка.', { t: 'засор канализация' }],
+    ['plumb', 'Краны, трубы и засоры', 'p_meter', 'Установка счётчика воды', 'шт', 1200, 'Монтаж счётчика на готовый участок трубы, проверка на течь.', { t: 'водосчётчик' }],
+    ['plumb', 'Краны, трубы и засоры', 'p_dryer', 'Замена полотенцесушителя без сварки', 'шт', 4000, 'Демонтаж старого, монтаж нового на резьбовых соединениях.', { c: 'Перекрытие стояка согласуется с управляющей компанией, это не входит в работу.', t: 'змеевик' }],
+    ['plumb', 'Краны, трубы и засоры', 'p_rad_tap', 'Замена крана на радиаторе', 'шт', 1500, 'Замена крана или термоголовки на радиаторе отопления.', { t: 'батарея отопление' }],
+    ['plumb', 'Душ', 'p_shower', 'Установка душевой стойки', 'шт', 2500, 'Сборка стойки, крепление к стене, подключение к смесителю.', { t: 'душ' }],
+    ['plumb', 'Душ', 'p_hose', 'Замена душевого шланга и лейки', 'шт', 500, 'Снять старые, установить новые, проверить соединения.', { t: 'душ' }],
+
+    ['elec', 'Розетки и выключатели', 'e_out', 'Замена розетки или выключателя', 'шт', 350, 'Отключить питание, заменить механизм, проверить работу.', { t: 'розетка выключатель свет' }],
+    ['elec', 'Розетки и выключатели', 'e_out_new', 'Монтаж новой розетки или выключателя', 'шт', 700, 'Отверстие под подрозетник (гипсокартон, кирпич), подключение, установка механизма.', { t: 'розетка поставить' }],
+    ['elec', 'Розетки и выключатели', 'e_dimmer', 'Установка диммера или сенсорного выключателя', 'шт', 500, 'Подключение и проверка работы.', { t: 'светорегулятор' }],
+    ['elec', 'Розетки и выключатели', 'e_tv', 'Установка ТВ- или интернет-розетки', 'шт', 600, 'Монтаж механизма и подключение кабеля.', { t: 'антенна телевизор' }],
+    ['elec', 'Розетки и выключатели', 'e_door', 'Установка дверного звонка', 'шт', 800, 'Монтаж кнопки и звонка, подключение, проверка.', {}],
+    ['elec', 'Розетки и выключатели', 'e_motion', 'Установка датчика движения', 'шт', 800, 'Монтаж датчика, подключение к цепи освещения, настройка.', { t: 'освещение' }],
+    ['elec', 'Освещение', 'e_chand', 'Установка люстры на крюк (до 5 кг)', 'шт', 1000, 'Сборка, подвес, подключение, проверка.', { t: 'светильник потолок' }],
+    ['elec', 'Освещение', 'e_chand2', 'Установка люстры на планку или с пультом', 'шт', 1500, 'Монтаж планки, сборка, подключение, настройка пульта.', { t: 'светильник потолок' }],
+    ['elec', 'Освещение', 'e_spot', 'Установка точечного светильника', 'шт', 400, 'Подключение и фиксация в готовом отверстии.', { t: 'споты' }],
+    ['elec', 'Освещение', 'e_sconce', 'Установка бра или настенного светильника', 'шт', 700, 'Крепление к стене, подключение, проверка.', { t: 'светильник' }],
+    ['elec', 'Освещение', 'e_led', 'Монтаж светодиодной ленты с блоком питания', 'м', 300, 'Крепление ленты, подключение к блоку питания и сети.', { t: 'подсветка' }],
+    ['elec', 'Освещение', 'e_lamp', 'Замена лампы или патрона', 'шт', 300, 'Замена лампы или патрона, проверка работы.', { t: 'не горит свет' }],
+    ['elec', 'Щиток и защита', 'e_breaker', 'Установка автоматического выключателя в щиток', 'шт', 800, 'Установка на DIN-рейку, подключение, маркировка.', { t: 'автомат щит' }],
+    ['elec', 'Щиток и защита', 'e_rcd', 'Установка УЗО или дифавтомата', 'шт', 1000, 'Установка на DIN-рейку, подключение, проверка срабатывания.', { t: 'щит' }],
+    ['elec', 'Щиток и защита', 'e_diag', 'Поиск неисправности в проводке', 'час', 1500, 'Диагностика: нет света, выбивает автомат, не работает розетка.', { t: 'короткое замыкание обрыв нет света' }],
+    ['elec', 'Кабель', 'e_cable', 'Прокладка кабеля в гофре по поверхности', 'м', 150, 'Прокладка и крепление кабеля в гофре или кабель-канале.', { t: 'провод' }],
+    ['elec', 'Кабель', 'e_strobe', 'Штробление стены под кабель (кирпич, бетон)', 'м', 400, 'Прорезка канала под кабель.', { c: 'Пыль и мусор: уборка и вывоз считаются отдельно.', t: 'штроба' }],
+    ['elec', 'Подключение приборов', 'e_hob', 'Подключение варочной панели или электроплиты', 'шт', 1800, 'Подключение к готовой линии, проверка работы.', { c: 'Линия и розетка нужного сечения должны быть готовы.', t: 'плита' }],
+    ['elec', 'Подключение приборов', 'e_oven', 'Подключение духового шкафа', 'шт', 1200, 'Подключение к готовой розетке или линии, проверка.', { t: 'плита' }],
+    ['elec', 'Подключение приборов', 'e_hood', 'Установка кухонной вытяжки (без воздуховода)', 'шт', 2500, 'Крепление корпуса, подключение к сети, проверка.', { t: 'кухня' }],
+    ['elec', 'Подключение приборов', 'e_fan', 'Установка вентилятора в санузле', 'шт', 1500, 'Монтаж, подключение к выключателю, проверка тяги.', { t: 'вытяжка ванная' }],
+    ['elec', 'Подключение приборов', 'e_floor', 'Установка терморегулятора тёплого пола', 'шт', 1500, 'Монтаж, подключение, настройка датчика.', { t: 'тёплый пол термостат' }],
+
+    ['furn', 'Шкафы и тумбы', 'f_cab2', 'Сборка распашного шкафа (2 створки)', 'шт', 3500, 'Сборка по инструкции, навеска дверей, регулировка.', { t: 'гардероб' }],
+    ['furn', 'Шкафы и тумбы', 'f_cab3', 'Сборка распашного шкафа (3 створки)', 'шт', 4500, 'Сборка по инструкции, навеска дверей, регулировка.', { t: 'гардероб' }],
+    ['furn', 'Шкафы и тумбы', 'f_wardrobe', 'Сборка шкафа-купе (2 двери)', 'шт', 6000, 'Сборка корпуса, монтаж направляющих и дверей, регулировка хода.', { t: 'гардероб' }],
+    ['furn', 'Шкафы и тумбы', 'f_dresser', 'Сборка комода или тумбы с ящиками', 'шт', 1500, 'Сборка по инструкции, установка ящиков, регулировка.', {}],
+    ['furn', 'Шкафы и тумбы', 'f_night', 'Сборка прикроватной тумбы', 'шт', 800, 'Сборка по инструкции.', {}],
+    ['furn', 'Шкафы и тумбы', 'f_shoe', 'Сборка обувницы или вешалки', 'шт', 700, 'Сборка по инструкции.', { t: 'прихожая' }],
+    ['furn', 'Шкафы и тумбы', 'f_shelf', 'Сборка стеллажа или книжного шкафа', 'шт', 1500, 'Сборка по инструкции, выравнивание.', {}],
+    ['furn', 'Кровати и диваны', 'f_bed', 'Сборка двуспальной кровати', 'шт', 2500, 'Сборка рамы, установка основания.', {}],
+    ['furn', 'Кровати и диваны', 'f_bed_lift', 'Сборка кровати с подъёмным механизмом', 'шт', 3500, 'Сборка рамы, установка и регулировка механизма.', {}],
+    ['furn', 'Кровати и диваны', 'f_baby', 'Сборка детской кровати или кроватки', 'шт', 1500, 'Сборка по инструкции, проверка крепежа.', {}],
+    ['furn', 'Кровати и диваны', 'f_sofa', 'Сборка дивана', 'шт', 2500, 'Сборка каркаса и механизма, установка спинок и подлокотников.', {}],
+    ['furn', 'Кровати и диваны', 'f_sofa_c', 'Сборка углового дивана', 'шт', 3500, 'Сборка каркаса и механизма, соединение секций.', {}],
+    ['furn', 'Столы и стулья', 'f_desk', 'Сборка письменного или компьютерного стола', 'шт', 1800, 'Сборка по инструкции, установка полок и ящиков.', {}],
+    ['furn', 'Столы и стулья', 'f_table', 'Сборка обеденного стола', 'шт', 1500, 'Сборка по инструкции.', {}],
+    ['furn', 'Столы и стулья', 'f_chair', 'Сборка стула', 'шт', 300, 'Сборка по инструкции.', {}],
+    ['furn', 'Столы и стулья', 'f_office', 'Сборка офисного кресла', 'шт', 600, 'Сборка по инструкции, регулировка.', {}],
+    ['furn', 'Кухня', 'f_kit_wall', 'Навеска кухонного шкафа', 'шт', 900, 'Разметка, крепление на стену, регулировка фасада.', { t: 'навесной модуль' }],
+    ['furn', 'Кухня', 'f_kit_floor', 'Сборка и установка напольного кухонного модуля', 'шт', 1000, 'Сборка, установка по уровню, регулировка ножек и фасада.', { t: 'тумба' }],
+    ['furn', 'Кухня', 'f_top', 'Установка столешницы с вырезом под мойку', 'шт', 2500, 'Выравнивание, вырез по шаблону, герметизация торцов.', { t: 'мойка' }],
+    ['furn', 'Прочее', 'f_adjust', 'Регулировка дверей и петель', 'шт', 200, 'За одну дверь: регулировка петель и доводчиков.', { t: 'перекосило' }],
+    ['furn', 'Прочее', 'f_anti', 'Крепление мебели к стене', 'шт', 300, 'Установка уголка или стяжки, фиксация к стене.', { t: 'шкаф опрокидывание' }],
+    ['furn', 'Прочее', 'f_dis', 'Разборка мебели для переезда', 'шт', 1200, 'Разобрать шкаф или кровать, сложить крепёж.', { t: 'разобрать' }],
+
+    ['fix', 'Полки, зеркала, ТВ', 'm_shelf', 'Установка полки на стену (кирпич, бетон)', 'шт', 700, 'Разметка, сверление, дюбели, установка полки по уровню.', {}],
+    ['fix', 'Полки, зеркала, ТВ', 'm_shelf_gk', 'Установка полки на гипсокартон', 'шт', 600, 'Разметка, крепление на специальные дюбели, установка по уровню.', { t: 'мягкие стены' }],
+    ['fix', 'Полки, зеркала, ТВ', 'm_mirror', 'Навеска зеркала или картины', 'шт', 400, 'Разметка, крепление, выравнивание.', {}],
+    ['fix', 'Полки, зеркала, ТВ', 'm_mirror_big', 'Навеска тяжёлого зеркала (от 5 кг)', 'шт', 800, 'Разметка, надёжное крепление, выравнивание.', {}],
+    ['fix', 'Полки, зеркала, ТВ', 'm_tv', 'Установка телевизора на кронштейн (до 55")', 'шт', 1500, 'Монтаж кронштейна, навеска, выравнивание.', { t: 'тв телевизор на стену' }],
+    ['fix', 'Полки, зеркала, ТВ', 'm_tv_big', 'Установка телевизора на кронштейн (более 55")', 'шт', 2000, 'Монтаж кронштейна, навеска вдвоём, выравнивание.', { t: 'тв телевизор на стену' }],
+    ['fix', 'Полки, зеркала, ТВ', 'm_hook', 'Установка крючков, вешалок, держателей', 'шт', 150, 'Разметка и крепление.', {}],
+    ['fix', 'Карнизы и шторы', 'm_cornice', 'Установка карниза до 2 м', 'шт', 1000, 'Разметка, крепление кронштейнов, навеска.', { t: 'шторы' }],
+    ['fix', 'Карнизы и шторы', 'm_cornice_ceil', 'Установка потолочного карниза', 'шт', 1500, 'Разметка, крепление к потолку.', { t: 'шторы' }],
+    ['fix', 'Карнизы и шторы', 'm_blinds', 'Установка жалюзи или рулонных штор', 'шт', 600, 'Монтаж креплений, навеска, регулировка.', {}],
+    ['fix', 'Карнизы и шторы', 'm_net', 'Установка москитной сетки', 'шт', 500, 'Монтаж креплений, установка сетки.', {}],
+    ['fix', 'Двери и замки', 'm_handle', 'Замена дверной ручки или защёлки', 'шт', 700, 'Снять старую, установить новую, проверить работу.', {}],
+    ['fix', 'Двери и замки', 'm_lock', 'Замена врезного замка', 'шт', 1500, 'Снять старый, установить новый, проверить работу.', {}],
+    ['fix', 'Двери и замки', 'm_lock_cut', 'Врезка нового замка', 'шт', 1800, 'Разметка, вырез паза, установка.', {}],
+    ['fix', 'Двери и замки', 'm_peep', 'Установка дверного глазка', 'шт', 500, 'Сверление отверстия, установка.', {}],
+    ['fix', 'Двери и замки', 'm_adjust', 'Регулировка двери', 'шт', 600, 'Регулировка петель, замка, зазоров.', { t: 'не закрывается перекосило' }],
+    ['fix', 'Двери и замки', 'm_door', 'Установка межкомнатной двери', 'шт', 5000, 'Сборка коробки, установка, навеска полотна, наличники.', { c: 'Дверной проём должен быть подготовлен, дверь и коробка подобраны заранее.' }],
+    ['fix', 'Двери и замки', 'm_win', 'Регулировка пластикового окна', 'шт', 800, 'Регулировка створки и фурнитуры.', { t: 'дует не закрывается' }],
+    ['fix', 'Отделка и герметизация', 'm_sil_bath', 'Замена силикона на ванне', 'шт', 1200, 'Удалить старый шов, обезжирить, нанести новый.', { t: 'герметик шов' }],
+    ['fix', 'Отделка и герметизация', 'm_sil_sink', 'Замена силикона на мойке или раковине', 'шт', 800, 'Удалить старый шов, обезжирить, нанести новый.', { t: 'герметик шов' }],
+    ['fix', 'Отделка и герметизация', 'm_putty', 'Заделка трещин и отверстий в стене (до 0,5 м²)', 'шт', 1000, 'Расшить, прошпаклевать, зашлифовать.', { t: 'дыра штукатурка' }],
+    ['fix', 'Отделка и герметизация', 'm_plinth', 'Монтаж плинтуса', 'м', 150, 'Подрезка и крепление.', { t: 'напольный' }],
+    ['fix', 'Отделка и герметизация', 'm_plinth_c', 'Монтаж потолочного плинтуса', 'м', 200, 'Подрезка и приклеивание.', {}],
+    ['fix', 'Прочее', 'm_drill', 'Сверление отверстия в бетоне', 'шт', 100, 'Одно отверстие перфоратором.', { t: 'бетон перфоратор' }],
+    ['fix', 'Прочее', 'm_dryer', 'Монтаж сушилки для белья', 'шт', 1500, 'Разметка, крепление, проверка нагрузки.', { t: 'балкон' }],
+
+    ['common', 'Выезд и условия', 'c_visit', 'Выезд и диагностика', 'шт', 500, 'Приезд на объект, осмотр, расчёт стоимости.', { t: 'осмотр консультация' }],
+    ['common', 'Выезд и условия', 'c_deliv', 'Доставка деталей и материалов', 'шт', 500, 'Одна согласованная поездка за деталями. Стоимость покупки отдельно.', {}],
+    ['common', 'Выезд и условия', 'c_far', 'Выезд за черту города', 'шт', 800, 'Дорога к объекту за городом.', {}],
+    ['common', 'Выезд и условия', 'c_wait', 'Простой мастера по вине клиента', 'час', 600, 'Ожидание после прибытия по причине, согласованной с клиентом.', {}],
+    ['common', 'Прочие работы', 'c_hour', 'Нормо-час нестандартных работ', 'час', 1500, 'Для операции, которой нет отдельной строкой в прайсе.', { t: 'мастер на час' }],
+    ['common', 'Прочие работы', 'c_trash', 'Вынос и вывоз строительного мусора', 'шт', 500, 'Собрать мусор и вынести в контейнер.', { t: 'уборка' }],
+    ['common', 'Прочие работы', 'c_cover', 'Укрытие пола и мебели, уборка после работ', 'шт', 600, 'Защитить поверхности плёнкой, убрать пыль и мусор.', { t: 'пыль' }]
+  ];
+
+  var COEFS = [
+    { id: 'urgent', n: 'Срочный выезд', pct: 30, d: 'Мастер приезжает в течение 2–3 часов после звонка.', s: null },
+    { id: 'off', n: 'Вечер, ночь, выходной', pct: 20, d: 'Работа после 20:00, в выходные и праздники.', s: null },
+    { id: 'tight', n: 'Стеснённые условия', pct: 20, d: 'Узел в нише или за мебелью, нужно сначала освободить подход.', s: null },
+    { id: 'rust', n: 'Старое закисшее соединение', pct: 25, d: 'Резьба или фитинг не поддаются обычным инструментом.', s: ['plumb'] },
+    { id: 'height', n: 'Работа на высоте от 2,5 м', pct: 20, d: 'Нужна стремянка или леса.', s: ['elec', 'fix', 'furn'] },
+    { id: 'hard', n: 'Бетон или армированная стена', pct: 15, d: 'Сверление и крепление занимают больше времени.', s: ['elec', 'fix'] }
+  ];
+
+  var REL = {
+    p_mix_dem: ['p_mix_set', 'p_flex', 'p_angle'],
+    p_mix_set: ['p_mix_dem', 'p_flex', 'p_angle'],
+    p_mix_rep: ['p_flex', 'p_angle', 'p_mix_cart', 'c_trash'],
+    p_mix_pull: ['p_flex', 'p_siphon', 'p_angle'],
+    p_mix_wall: ['p_hose', 'p_shower', 'p_siphon_bath'],
+    p_siphon: ['p_clean_s', 'p_leak'],
+    p_sink_set: ['p_mix_set', 'p_siphon', 'p_flex', 'p_angle'],
+    p_wc_rep: ['p_flex', 'p_angle', 'p_wc_arm', 'c_trash'],
+    p_wc_set: ['p_flex', 'p_angle'],
+    p_wm: ['p_angle', 'p_flex', 'p_leak'],
+    p_dw: ['p_angle', 'p_flex', 'p_siphon'],
+    p_boiler: ['p_angle', 'p_flex', 'c_trash', 'c_deliv'],
+    e_chand: ['e_lamp', 'e_dimmer', 'c_trash'],
+    e_out: ['e_out_new', 'e_cable', 'e_strobe'],
+    e_hob: ['e_oven', 'e_breaker', 'e_rcd'],
+    m_shelf: ['m_drill', 'm_mirror', 'c_cover'],
+    m_tv: ['m_drill', 'e_out_new', 'e_tv'],
+    m_tv_big: ['m_drill', 'e_out_new', 'e_tv'],
+    m_cornice: ['m_drill', 'm_blinds', 'c_cover']
+  };
+  var SECREL = {
+    plumb: ['c_trash', 'c_cover', 'c_deliv'],
+    elec: ['e_diag', 'c_trash', 'c_cover'],
+    furn: ['f_anti', 'f_adjust', 'c_trash'],
+    fix: ['m_drill', 'c_cover', 'c_trash'],
+    common: ['c_visit', 'c_deliv', 'c_hour'],
+    mine: ['c_trash', 'c_deliv']
+  };
+  /*ENDDATA*/
+
+  /* ---------- helpers ---------- */
+  var $ = function (s) { return document.querySelector(s); };
+  var esc = function (s) { return String(s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); };
+  var nf = new Intl.NumberFormat('ru-RU', { maximumFractionDigits: 2 });
+  var rub = function (n) { return nf.format(Math.round(n)) + ' ₽'; };
+  var num = function (v) { var n = parseFloat(v); return isFinite(n) ? n : 0; };
+  var fmtQ = function (q) { return nf.format(num(q)); };
+  var uid = function () { return Date.now().toString(36) + Math.random().toString(36).slice(2, 7); };
+  var norm = function (s) { return String(s).toLowerCase().replace(/ё/g, 'е'); };
+  var stem = function (w) { return w.length > 6 ? w.slice(0, -3) : w.length > 4 ? w.slice(0, -2) : w.length > 3 ? w.slice(0, -1) : w; };
+
+  var ICON = {
+    plus: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>',
+    minus: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M5 12h14"/></svg>',
+    x: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg>',
+    reset: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/></svg>',
+    tree: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 6h16M7 12h10M10 18h4"/></svg>',
+    trash: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 12a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-12M9 7V4h6v3"/></svg>'
+  };
+
+  /* ---------- catalog ---------- */
+  var secName = function (id) { for (var i = 0; i < SECS.length; i++) if (SECS[i][0] === id) return SECS[i][1]; return ''; };
+  var CAT = RAW.map(function (r) {
+    var it = { id: r[2], sec: r[0], sub: r[1], name: r[3], unit: r[4], price: r[5], desc: r[6], opt: r[7] || {} };
+    it.h = norm([it.name, it.desc, it.opt.t || '', secName(it.sec), it.sub].join(' '));
+    return it;
+  });
+  var CATMAP = {};
+  CAT.forEach(function (i) { CATMAP[i.id] = i; });
+  var COEF = {};
+  COEFS.forEach(function (c) { COEF[c.id] = c; });
+
+  /* ---------- state ---------- */
+  var LS = 'smeta-mastera-v1';
+  var S = { prices: {}, rels: {}, edits: {}, custom: [], hidden: {}, ests: [], cur: null, sec: '', q: '', shown: 30, dirty: {}, gone: {}, db: null, uid: null, status: 'draft', localOk: true, openDet: {}, delAsk: null, orders: [], tab: 'price', ord: { period: 'week', anchor: '', status: 'all' } };
+
+  function customItem(c) {
+    var sec = c.sec || 'mine';
+    return { id: c.id, sec: sec, sub: c.sub || 'Мои позиции', name: c.name, unit: c.unit, price: c.price, desc: c.desc || 'Своя позиция.', opt: { c: c.c || '' }, custom: true, h: norm(c.name + ' ' + (c.desc || '') + ' ' + (c.sub || '') + ' ' + secName(sec)) };
+  }
+  /* a built-in item with the user's edits laid over it */
+  function builtin(o) {
+    var e = S.edits[o.id];
+    if (!e) return o;
+    var it = {
+      id: o.id, sec: e.sec || o.sec, sub: e.sub || o.sub, name: e.name || o.name, unit: e.unit || o.unit,
+      price: e.price != null ? e.price : o.price, desc: e.desc != null ? e.desc : o.desc,
+      opt: { c: e.c != null ? e.c : o.opt.c, t: o.opt.t },
+      orig: o, edited: true
+    };
+    it.h = norm([it.name, it.desc, o.opt.t || '', secName(it.sec), it.sub].join(' '));
+    return it;
+  }
+  function getItem(id) {
+    if (!id) return null;
+    if (CATMAP[id]) return builtin(CATMAP[id]);
+    for (var i = 0; i < S.custom.length; i++) if (S.custom[i].id === id) return customItem(S.custom[i]);
+    return null;
+  }
+  function allItems() { return CAT.filter(function (i) { return !S.hidden[i.id]; }).map(builtin).concat(S.custom.map(customItem)); }
+  function priceOf(it) { return it.price; }
+  function sections() {
+    var hasMine = allItems().some(function (i) { return i.sec === 'mine'; });
+    return SECS.filter(function (s) { return s[0] !== 'mine' || hasMine; });
+  }
+  function secIndex(id) { for (var i = 0; i < SECS.length; i++) if (SECS[i][0] === id) return i; return 99; }
+  /* old versions kept price changes apart from edits */
+  function migratePrices() {
+    Object.keys(S.prices).forEach(function (id) {
+      S.edits[id] = Object.assign({}, S.edits[id], { price: S.prices[id] });
+    });
+    S.prices = {};
+  }
+
+  /* ---------- estimate math ---------- */
+  function pctOf(l) { return (l.mods || []).reduce(function (s, id) { return s + (COEF[id] ? COEF[id].pct : 0); }, 0); }
+  function lineBase(l) { return Math.round(num(l.price) * num(l.qty)); }
+  function lineTotal(l) { return Math.round(num(l.price) * num(l.qty) * (1 + pctOf(l) / 100)); }
+  function calc(e) {
+    var base = 0, total = 0;
+    e.items.forEach(function (l) { base += lineBase(l); total += lineTotal(l); });
+    return { base: base, mark: total - base, total: total };
+  }
+  function defTitle() {
+    var d = new Date(), p = function (n) { return (n < 10 ? '0' : '') + n; };
+    return 'Чек ' + p(d.getDate()) + '.' + p(d.getMonth() + 1) + ', ' + p(d.getHours()) + ':' + p(d.getMinutes());
+  }
+  function mkLine(it, qty) {
+    var p = priceOf(it);
+    return { k: uid(), id: it.id, name: it.name, unit: it.unit, base: p, price: p, qty: qty || 1, mods: [] };
+  }
+  function exampleEst() {
+    var mk = function (id, q) { return mkLine(CATMAP[id], q); };
+    return { id: uid(), title: 'Пример: замена смесителя', items: [mk('p_mix_dem', 1), mk('p_mix_set', 1), mk('p_flex', 1)], updated: Date.now() };
+  }
+
+  /* ---------- persistence ---------- */
+  function persistLocal() {
+    try {
+      localStorage.setItem(LS, JSON.stringify({ rels: S.rels, edits: S.edits, custom: S.custom, hidden: S.hidden, ests: S.ests, cur: S.cur.id, orders: S.orders }));
+      S.localOk = true;
+    } catch (_) { S.localOk = false; }
+  }
+  function loadLocal() {
+    try { var r = localStorage.getItem(LS); return r ? JSON.parse(r) : null; } catch (_) { return null; }
+  }
+  var statusText = { draft: 'Черновик', saving: 'Сохраняется…', saved: 'Сохранено', local: 'Сохранено на устройстве', err: 'Не удалось сохранить в облаке, копия на устройстве', none: 'Не сохраняется: память браузера недоступна' };
+  function setStatus(s) {
+    S.status = s;
+    var el = $('#status');
+    el.textContent = statusText[s] || '';
+    el.className = 'status' + (s === 'saved' || s === 'local' ? ' ok' : s === 'err' || s === 'none' ? ' err' : '');
+    var oe = $('#ordStatus');
+    if (oe) { oe.textContent = statusText[s] || ''; oe.className = el.className; }
+  }
+  var saveTimer = null, chain = Promise.resolve();
+  function markDirty(id) { S.dirty[id] = 1; }
+  function scheduleSave() {
+    persistLocal();
+    setStatus('saving');
+    clearTimeout(saveTimer);
+    saveTimer = setTimeout(function () { chain = chain.then(flush).catch(function () {}); }, 700);
+  }
+  function flush() {
+    if (!S.db) { setStatus(S.localOk ? 'local' : 'none'); S.dirty = {}; S.gone = {}; return Promise.resolve(); }
+    var col = S.db.collection('data/users/' + S.uid);
+    var ids = Object.keys(S.dirty), gone = Object.keys(S.gone);
+    S.dirty = {}; S.gone = {};
+    var run = Promise.resolve();
+    ids.forEach(function (id) {
+      run = run.then(function () {
+        if (id === '@settings') return col.doc('settings').set({ edits: S.edits, rels: S.rels, custom: S.custom, hidden: S.hidden, cur: S.cur.id, v: 3 });
+        if (id.indexOf('o:') === 0) {
+          var oo = S.orders.filter(function (x) { return x.id === id.slice(2); })[0];
+          return oo ? col.doc('ord_' + oo.id).set(orderDoc(oo)) : null;
+        }
+        var e = S.ests.filter(function (x) { return x.id === id; })[0];
+        return e ? col.doc('est_' + id).set({ title: e.title, items: e.items, updated: e.updated }) : null;
+      });
+    });
+    gone.forEach(function (id) { run = run.then(function () { return col.doc((id.indexOf('o:') === 0 ? 'ord_' + id.slice(2) : 'est_' + id)).delete(); }); });
+    return run.then(function () { setStatus('saved'); }).catch(function () {
+      ids.forEach(function (i) { S.dirty[i] = 1; });
+      gone.forEach(function (i) { S.gone[i] = 1; });
+      setStatus('err');
+    });
+  }
+
+  /* ---------- estimate operations ---------- */
+  function touchEst(skipRender) {
+    S.cur.updated = Date.now();
+    markDirty(S.cur.id);
+    scheduleSave();
+    if (!skipRender) renderEst();
+    refreshActs();
+  }
+  function addItem(it, qty) {
+    var ex = S.cur.items.filter(function (l) { return l.id === it.id; })[0];
+    if (ex) ex.qty = Math.round((num(ex.qty) + (qty || 1)) * 100) / 100;
+    else S.cur.items.push(mkLine(it, qty || 1));
+    touchEst();
+    var d = $('#dock'); d.classList.remove('pulse'); void d.offsetWidth; d.classList.add('pulse');
+  }
+  function stepItem(it, delta) {
+    var l = S.cur.items.filter(function (x) { return x.id === it.id; })[0];
+    if (!l) return;
+    l.qty = Math.round((num(l.qty) + delta) * 100) / 100;
+    if (l.qty <= 0) S.cur.items = S.cur.items.filter(function (x) { return x !== l; });
+    touchEst();
+  }
+  function openEstimate(e) {
+    S.cur = e;
+    $('#estTitle').value = e.title;
+    markDirty('@settings');
+    scheduleSave();
+    renderEst();
+    refreshActs();
+  }
+  function newEstimate() {
+    if (S.cur && !S.cur.items.length) {
+      S.cur.title = defTitle();
+      $('#estTitle').value = S.cur.title;
+      touchEst();
+    } else {
+      var e = { id: uid(), title: defTitle(), items: [], updated: Date.now() };
+      S.ests.unshift(e);
+      markDirty(e.id);
+      openEstimate(e);
+    }
+    toast('Новый чек создан');
+  }
+  function removeEstimate(id) {
+    S.ests = S.ests.filter(function (e) { return e.id !== id; });
+    S.gone[id] = 1;
+    delete S.dirty[id];
+    if (S.cur.id === id) {
+      if (!S.ests.length) { var e = { id: uid(), title: defTitle(), items: [], updated: Date.now() }; S.ests.push(e); markDirty(e.id); }
+      openEstimate(S.ests[0]);
+    } else { markDirty('@settings'); scheduleSave(); }
+  }
+
+  /* ---------- catalog rendering ---------- */
+  function visibleItems() {
+    var toks = norm(S.q).trim().split(/\s+/).filter(Boolean).map(stem);
+    var arr = allItems().filter(function (i) { return !S.sec || i.sec === S.sec; });
+    if (!toks.length) {
+      if (S.sec) return arr;
+      return arr.map(function (i, n) { return { i: i, n: n }; }).sort(function (a, b) { return secIndex(a.i.sec) - secIndex(b.i.sec) || a.n - b.n; }).map(function (r) { return r.i; });
+    }
+    var res = [];
+    arr.forEach(function (i, idx) {
+      var name = norm(i.name), score = 0;
+      for (var t = 0; t < toks.length; t++) {
+        if (i.h.indexOf(toks[t]) < 0) return;
+        if (name.indexOf(toks[t]) >= 0) score += 2; else score += 1;
+      }
+      res.push({ i: i, s: score, n: idx });
+    });
+    res.sort(function (a, b) { return b.s - a.s || a.n - b.n; });
+    return res.map(function (r) { return r.i; });
+  }
+  function actHTML(it) {
+    var l = S.cur.items.filter(function (x) { return x.id === it.id; })[0];
+    if (!l) return '<button class="btn primary" type="button" data-act="add">' + ICON.plus + ' В чек</button>';
+    return '<span class="step"><button type="button" data-act="dec" aria-label="Меньше">' + ICON.minus + '</button><output>' + fmtQ(l.qty) + '</output><button type="button" data-act="inc" aria-label="Больше">' + ICON.plus + '</button></span>';
+  }
+  function cardHTML(it) {
+    var p = priceOf(it), own = !!(it.orig && it.orig.price !== it.price);
+    var open = S.openDet[it.id] ? ' open' : '';
+    var cond = '<div><b>Что входит:</b> ' + esc(it.desc) + '</div>' +
+      '<div><b>Цена:</b> от ' + rub(p) + ' за ' + esc(it.unit) + (own ? ' (ваша цена, в прайсе была ' + rub(it.orig.price) + ')' : '') + '</div>' +
+      (it.opt.c ? '<div><b>Условие:</b> ' + esc(it.opt.c) + '</div>' : '') +
+      '<div>Материалы и запчасти оплачиваются отдельно.</div>';
+    return '<article class="card" data-id="' + esc(it.id) + '">' +
+      '<div class="card-top"><h3>' + esc(it.name) + '</h3>' +
+      '<button class="price' + (own ? ' own' : '') + '" type="button" data-act="price" aria-label="Цена от ' + rub(p) + ' за ' + esc(it.unit) + '. Изменить цену в прайсе"><b>от ' + rub(p) + '</b><span>' + esc(it.unit) + '</span></button></div>' +
+      '<div class="meta-row"><p class="meta">' + esc(secName(it.sec)) + ' / ' + esc(it.sub) + '</p><button class="link" type="button" data-act="edit">Изменить</button></div>' +
+      '<p class="desc">' + esc(it.desc) + '</p>' +
+      '<details data-d="' + esc(it.id) + '"' + open + '><summary>Условия и состав работ</summary><div class="cond">' + cond + '</div></details>' +
+      '<div class="card-act"><button class="link" type="button" data-act="rel">' + ICON.tree + ' Что ещё учесть</button>' +
+      '<span data-actfor="' + esc(it.id) + '">' + actHTML(it) + '</span></div></article>';
+  }
+  function renderChips() {
+    var cnt = {};
+    allItems().forEach(function (i) { cnt[i.sec] = (cnt[i.sec] || 0) + 1; });
+    var h = '<button type="button" class="chip' + (!S.sec ? ' on' : '') + '" data-sec="">Все<small>' + allItems().length + '</small></button>';
+    sections().forEach(function (s) {
+      h += '<button type="button" class="chip' + (S.sec === s[0] ? ' on' : '') + '" data-sec="' + s[0] + '">' + esc(s[1]) + '<small>' + (cnt[s[0]] || 0) + '</small></button>';
+    });
+    $('#chips').innerHTML = h;
+  }
+  function renderList() {
+    var arr = visibleItems(), part = arr.slice(0, S.shown), h = '', last = '';
+    part.forEach(function (it) {
+      if (!S.q && !S.sec && it.sec !== last) { last = it.sec; h += '<h2 class="grp">' + esc(secName(it.sec)) + '</h2>'; }
+      h += cardHTML(it);
+    });
+    $('#list').innerHTML = h;
+    $('#more').hidden = arr.length <= S.shown;
+    $('#more').textContent = 'Показать ещё (' + (arr.length - S.shown) + ')';
+    $('#empty').hidden = arr.length > 0;
+    var hn = Object.keys(S.hidden).length;
+    $('#btnHidden').hidden = !hn;
+    $('#btnHidden').textContent = 'Удалённые из прайса: ' + hn;
+  }
+  function refreshActs() {
+    var nodes = document.querySelectorAll('[data-actfor]');
+    for (var i = 0; i < nodes.length; i++) {
+      var it = getItem(nodes[i].getAttribute('data-actfor'));
+      if (it) nodes[i].innerHTML = actHTML(it);
+    }
+  }
+
+  /* ---------- estimate rendering ---------- */
+  function modsHTML(l) {
+    return (l.mods || []).map(function (id) { return COEF[id] ? '<span class="tag acc">+' + COEF[id].pct + '% ' + esc(COEF[id].n) + '</span>' : ''; }).join('');
+  }
+  function lineHTML(l) {
+    var own = l.base != null && num(l.price) !== num(l.base);
+    return '<li class="line" data-k="' + l.k + '">' +
+      '<div class="line-head"><h4>' + esc(l.name) + '</h4><button class="btn icon sm" type="button" data-act="del" aria-label="Убрать из чека: ' + esc(l.name) + '">' + ICON.x + '</button></div>' +
+      '<p class="meta">' + (l.base == null ? 'Своя позиция' : 'Из прайса') + ' · цена за ' + esc(l.unit) + '</p>' +
+      '<div class="fields">' +
+      '<label class="fld"><span>Цена от, ₽</span><span class="pbox"><input class="in in-price" type="number" inputmode="decimal" min="0" step="any" value="' + esc(l.price) + '"><button class="reset" type="button" data-act="reset" title="Вернуть цену из прайса" aria-label="Вернуть цену из прайса"' + (own ? '' : ' hidden') + '>' + ICON.reset + '</button></span></label>' +
+      '<label class="fld"><span>Кол-во</span><input class="in in-qty" type="number" inputmode="decimal" min="0" step="any" value="' + esc(l.qty) + '"></label>' +
+      '</div>' +
+      '<div class="mods">' + modsHTML(l) + '</div>' +
+      '<div class="line-foot"><button class="link" type="button" data-act="rel">' + ICON.tree + ' Что ещё учесть</button><output class="ltot">от ' + rub(lineTotal(l)) + '</output></div></li>';
+  }
+  function refreshTotals() {
+    var c = calc(S.cur), n = S.cur.items.length;
+    $('#estTotal').textContent = n ? 'от ' + rub(c.total) : rub(0);
+    $('#baseTotal').textContent = rub(c.base);
+    $('#markTotal').textContent = rub(c.mark);
+    $('#dockTotal').textContent = n ? 'от ' + rub(c.total) : rub(0);
+    $('#dockCount').textContent = n ? 'Чек · ' + n + ' ' + plural(n) : 'Чек пуст';
+    $('#btnCopy').disabled = !n;
+    $('#btnClear').disabled = !n;
+    $('#btnToOrder').disabled = !n;
+    $('#estEmpty').hidden = n > 0;
+    if (!n) $('#clearAsk').hidden = true;
+  }
+  function plural(n) {
+    var m = n % 10, h = n % 100;
+    return m === 1 && h !== 11 ? 'позиция' : (m >= 2 && m <= 4 && (h < 10 || h >= 20)) ? 'позиции' : 'позиций';
+  }
+  function renderEst() {
+    $('#estList').innerHTML = S.cur.items.map(lineHTML).join('');
+    refreshTotals();
+  }
+  function findLine(k) { return S.cur.items.filter(function (l) { return l.k === k; })[0]; }
+
+  /* ---------- modal ---------- */
+  var M = $('#modal'), MB = $('#modalBody'), lastFocus = null, mctx = null;
+  function openModal(html, ctx) {
+    lastFocus = document.activeElement;
+    mctx = ctx || null;
+    MB.innerHTML = html;
+    M.hidden = false;
+    document.body.classList.add('lock');
+    var f = MB.querySelector('[data-autofocus]');
+    if (f) { f.focus(); if (f.select) f.select(); } else { var c = MB.querySelector('[data-act="close"]'); if (c) c.focus(); }
+  }
+  function closeModal() {
+    M.hidden = true; MB.innerHTML = ''; mctx = null;
+    if (!$('#est').classList.contains('open')) document.body.classList.remove('lock');
+    if (lastFocus && lastFocus.focus) lastFocus.focus();
+  }
+  var head = function (title, sub) {
+    return '<div class="m-head"><div><h2 id="mTitle">' + esc(title) + '</h2>' + (sub ? '<p class="sub">' + esc(sub) + '</p>' : '') + '</div><button class="btn icon" type="button" data-act="close" aria-label="Закрыть">' + ICON.x + '</button></div>';
+  };
+
+  function memoHTML() {
+    var st = [
+      ['Найдите работу', 'Введите название или проблему: «смеситель», «розетка», «течь». Или выберите раздел.'],
+      ['Проверьте цену', 'Откройте «Условия и состав работ». Цена «от» указана за штуку, метр или час.'],
+      ['Добавьте в чек', 'Нажмите «В чек». Цену и количество можно поменять прямо в чеке.'],
+      ['Учтите допработы', '«Что ещё учесть» показывает смежные работы и наценки за срочность, высоту, тесноту. Набор смежных работ можно собрать свой для каждой позиции.'],
+      ['Добавьте свою позицию', 'Если работы нет в прайсе, внесите её вручную. Можно сохранить в «Свои работы».'],
+      ['Отправьте клиенту', '«Скопировать чек» помещает смету текстом, её можно вставить в мессенджер.']
+    ];
+    return head('Как составить чек') + '<ol class="steps">' + st.map(function (s) { return '<li><div><b>' + s[0] + '</b><span>' + s[1] + '</span></div></li>'; }).join('') + '</ol>' +
+      '<p class="callout">Цены в прайсе примерные. Нажмите на цену в карточке, чтобы поставить свою. Материалы и запчасти считаются отдельно.</p>';
+  }
+  function customHTML(err) {
+    return head('Своя позиция') +
+      '<form class="m-form" id="customForm" novalidate>' +
+      '<label class="fld"><span>Название работы</span><input class="in txt" id="cName" maxlength="120" autocomplete="off" required data-autofocus></label>' +
+      '<div class="two"><label class="fld"><span>Цена от, ₽</span><input class="in" id="cPrice" type="number" inputmode="decimal" min="0" step="any" value="0" required></label>' +
+      '<label class="fld"><span>Кол-во</span><input class="in" id="cQty" type="number" inputmode="decimal" min="0" step="any" value="1" required></label></div>' +
+      '<label class="fld"><span>Единица</span><select class="in" id="cUnit"><option>шт</option><option>м</option><option>м²</option><option>час</option><option>компл.</option><option>пара</option></select></label>' +
+      '<label class="chk"><input type="checkbox" id="cSave"><span class="chk-t"><b>Сохранить в «Свои работы»</b><small>Позиция появится в прайсе, её можно будет добавлять в другие чеки.</small></span></label>' +
+      '<p class="err" id="cErr" role="alert"' + (err ? '' : ' hidden') + '>' + esc(err || '') + '</p>' +
+      '<div class="m-actions"><button class="btn" type="button" data-act="close">Отмена</button><button class="btn primary" type="submit">' + ICON.plus + ' Добавить</button></div></form>';
+  }
+  function itemFormHTML(it) {
+    var edit = !!it;
+    var sec = it ? it.sec : (S.sec || 'mine');
+    var units = ['шт', 'м', 'м²', 'час', 'компл.', 'пара'];
+    if (it && units.indexOf(it.unit) < 0) units.push(it.unit);
+    var desc = it && it.desc !== 'Своя позиция.' ? it.desc : '';
+    return head(edit ? 'Изменить позицию' : 'Новая позиция в прайсе', edit ? it.name : '') +
+      '<form class="m-form" id="itemForm" novalidate>' +
+      '<label class="fld"><span>Название работы</span><input class="in txt" id="iName" maxlength="120" autocomplete="off" value="' + esc(it ? it.name : '') + '" data-autofocus></label>' +
+      '<div class="two"><label class="fld"><span>Раздел</span><select class="in" id="iSec">' +
+      SECS.map(function (s) { return '<option value="' + s[0] + '"' + (s[0] === sec ? ' selected' : '') + '>' + esc(s[1]) + '</option>'; }).join('') + '</select></label>' +
+      '<label class="fld"><span>Группа</span><input class="in txt" id="iSub" maxlength="60" autocomplete="off" placeholder="Например: Смесители" value="' + esc(it && it.sub !== 'Мои позиции' ? it.sub : '') + '"></label></div>' +
+      '<div class="two"><label class="fld"><span>Цена от, ₽</span><input class="in" id="iPrice" type="number" inputmode="decimal" min="0" step="any" value="' + esc(it ? it.price : '') + '"></label>' +
+      '<label class="fld"><span>Единица</span><select class="in" id="iUnit">' +
+      units.map(function (u) { return '<option' + (it && it.unit === u ? ' selected' : '') + '>' + esc(u) + '</option>'; }).join('') + '</select></label></div>' +
+      '<label class="fld"><span>Что входит в работу</span><textarea class="in area" id="iDesc" maxlength="300" placeholder="Коротко: что делает мастер">' + esc(desc) + '</textarea></label>' +
+      '<label class="fld"><span>Дополнительное условие (необязательно)</span><textarea class="in area" id="iCond" maxlength="300" placeholder="Например: материалы клиента, подготовленный проём">' + esc(it && it.opt.c ? it.opt.c : '') + '</textarea></label>' +
+      (it && it.orig ? '<p class="hint">В исходном прайсе: ' + esc(it.orig.name) + ', от ' + rub(it.orig.price) + ' за ' + esc(it.orig.unit) + '. На работы, уже лежащие в чеках, правка не влияет.</p>' : '') +
+      '<p class="err" id="iErr" role="alert" hidden></p>' +
+      '<div class="m-actions"><button class="btn" type="button" data-act="close">Отмена</button><button class="btn primary" type="submit">' + (edit ? 'Сохранить' : ICON.plus + ' Добавить') + '</button></div>' +
+      (it && it.edited ? '<div class="m-actions"><button class="btn" type="button" data-act="editReset">Вернуть исходные значения</button></div>' : '') +
+      (edit ? '<div class="m-actions"><button class="btn danger" type="button" data-act="' + (it.custom ? 'itemDel' : 'hideItem') + '" data-confirm="1">Удалить из прайса</button></div>' : '') +
+      (edit && !it.custom ? '<p class="hint">Удалённые позиции можно вернуть: ссылка «Удалённые из прайса» внизу списка.</p>' : '') +
+      '</form>';
+  }
+  function hiddenHTML() {
+    var ids = CAT.filter(function (i) { return S.hidden[i.id]; }).map(builtin);
+    return head('Удалённые из прайса', 'Верните позицию, и она снова появится в списке') +
+      (ids.length ? '<button class="btn wide" type="button" data-act="restoreAll">Вернуть все (' + ids.length + ')</button>' : '<p class="hint">Здесь пусто.</p>') +
+      '<ul class="rows">' + ids.map(function (i) {
+        return '<li class="rel"><div><b>' + esc(i.name) + '</b><small>' + esc(secName(i.sec)) + ' · от ' + rub(priceOf(i)) + ' / ' + esc(i.unit) + '</small></div>' +
+          '<button class="btn sm" type="button" data-act="restore" data-id="' + esc(i.id) + '">Вернуть</button></li>';
+      }).join('') + '</ul>';
+  }
+  function relBase(ctx) {
+    var e = S.cur;
+    var l = ctx.k ? findLine(ctx.k) : (ctx.itemId ? e.items.filter(function (x) { return x.id === ctx.itemId; })[0] : null);
+    var it = ctx.itemId ? getItem(ctx.itemId) : (l && l.id ? getItem(l.id) : null);
+    return { l: l, it: it };
+  }
+  /* related works: the user's own set for an item wins over the built-in one */
+  function relIds(it) {
+    var base = it ? (S.rels[it.id] || REL[it.id] || SECREL[it.sec] || SECREL.common) : SECREL.common;
+    return base.filter(function (id) { return (!it || id !== it.id) && getItem(id) && !S.hidden[id]; });
+  }
+  function ownRels(it) {
+    return S.rels[it.id] ? S.rels[it.id].slice() : (REL[it.id] || SECREL[it.sec] || SECREL.common).slice();
+  }
+  function saveRels(it, arr) { S.rels[it.id] = arr; markDirty('@settings'); scheduleSave(); }
+  function findItems(q) {
+    var toks = norm(q).trim().split(/\s+/).filter(Boolean).map(stem);
+    var arr = allItems();
+    if (!toks.length) return arr;
+    return arr.filter(function (i) { return toks.every(function (t) { return i.h.indexOf(t) >= 0; }); });
+  }
+  function pickListHTML(it, q) {
+    var have = relIds(it);
+    var arr = findItems(q).filter(function (i) { return i.id !== it.id && have.indexOf(i.id) < 0; });
+    if (!arr.length) return '<p class="hint">Ничего не найдено.</p>';
+    return '<ul class="rows">' + arr.slice(0, 30).map(function (i) {
+      return '<li class="rel"><div><b>' + esc(i.name) + '</b><small>' + esc(secName(i.sec)) + ' · от ' + rub(priceOf(i)) + ' / ' + esc(i.unit) + '</small></div>' +
+        '<button class="btn sm" type="button" data-act="linkpick" data-id="' + esc(i.id) + '">' + ICON.plus + ' Добавить</button></li>';
+    }).join('') + '</ul>' + (arr.length > 30 ? '<p class="hint">Показаны первые 30. Уточните поиск.</p>' : '');
+  }
+  function pickHTML(ctx) {
+    var b = relBase(ctx);
+    return '<div class="m-head"><div><h2 id="mTitle">Добавить смежную работу</h2><p class="sub">к работе: ' + esc(b.it.name) + '</p></div>' +
+      '<button class="btn icon" type="button" data-act="relback" aria-label="Назад">' + ICON.x + '</button></div>' +
+      '<label class="fld"><span class="sr">Поиск работы</span><input class="in txt" id="relQ" type="search" placeholder="Найти работу в прайсе" autocomplete="off" data-autofocus></label>' +
+      '<div id="pickList">' + pickListHTML(b.it, '') + '</div>' +
+      '<div class="m-actions"><button class="btn primary" type="button" data-act="relback">Готово</button></div>';
+  }
+  function relHTML(ctx) {
+    var e = S.cur, b = relBase(ctx), l = b.l, it = b.it;
+    var sec = it ? it.sec : null;
+    var h = head('Что ещё учесть', l ? l.name : (it ? it.name : ''));
+    if (l) {
+      var cs = COEFS.filter(function (c) { return !c.s || !sec || c.s.indexOf(sec) >= 0; });
+      h += '<h3 class="m-h">Наценки</h3><p class="hint">Отметьте условия, которые есть на объекте. Наценка считается от стоимости этой работы.</p><ul class="rows">' +
+        cs.map(function (c) {
+          return '<li><label class="chk"><input type="checkbox" data-coef="' + c.id + '"' + (l.mods.indexOf(c.id) >= 0 ? ' checked' : '') + '><span class="chk-t"><b>' + esc(c.n) + '</b><small>' + esc(c.d) + '</small></span><span class="pct">+' + c.pct + '%</span></label></li>';
+        }).join('') + '</ul>';
+    } else {
+      h += '<p class="hint">Наценки выбираются для работы в чеке. Добавьте её в чек и откройте это окно снова.</p>';
+    }
+    var rl = relIds(it);
+    h += '<h3 class="m-h">Смежные работы</h3>';
+    h += rl.length ? '<ul class="rows">' + rl.map(function (id) {
+      var r = getItem(id);
+      var inEst = e.items.filter(function (x) { return x.id === id; })[0];
+      return '<li class="rel"><div><b>' + esc(r.name) + '</b><small>от ' + rub(priceOf(r)) + ' / ' + esc(r.unit) + (inEst ? ' · в чеке ×' + fmtQ(inEst.qty) : '') + '</small></div>' +
+        '<div class="rel-act"><button class="btn sm" type="button" data-act="reladd" data-id="' + esc(id) + '">' + ICON.plus + (inEst ? ' Ещё' : ' В чек') + '</button>' +
+        (it ? '<button class="btn sm icon" type="button" data-act="unlink" data-id="' + esc(id) + '" aria-label="Убрать из смежных: ' + esc(r.name) + '" title="Убрать из смежных">' + ICON.x + '</button>' : '') +
+        '</div></li>';
+    }).join('') + '</ul>' : '<p class="hint">Смежных работ пока нет.</p>';
+    if (it) {
+      h += '<div class="m-actions"><button class="btn" type="button" data-act="relpick">' + ICON.plus + ' Добавить смежную работу</button>' +
+        (S.rels[it.id] ? '<button class="btn" type="button" data-act="relreset">Вернуть стандартный набор</button>' : '') + '</div>' +
+        '<p class="hint">Набор сохраняется для этой позиции прайса и показывается в любом чеке.</p>';
+    }
+    return h;
+  }
+  function myHTML() {
+    var list = S.ests.slice().sort(function (a, b) { return b.updated - a.updated; });
+    var p = function (n) { return (n < 10 ? '0' : '') + n; };
+    return head('Мои чеки', 'Сохраняются автоматически') +
+      '<button class="btn primary wide" type="button" data-act="newest">' + ICON.plus + ' Новый чек</button>' +
+      '<ul class="rows">' + list.map(function (e) {
+        var c = calc(e), d = new Date(e.updated);
+        var ask = S.delAsk === e.id;
+        return '<li class="est-row' + (e.id === S.cur.id ? ' cur' : '') + '" data-eid="' + e.id + '">' +
+          '<button class="open" type="button" data-act="openest"><b>' + esc(e.title || 'Без названия') + '</b><small>' + e.items.length + ' поз. · от ' + rub(c.total) + ' · ' + p(d.getDate()) + '.' + p(d.getMonth() + 1) + ', ' + p(d.getHours()) + ':' + p(d.getMinutes()) + '</small></button>' +
+          (ask ? '<button class="btn danger" type="button" data-act="delyes">Удалить</button><button class="btn" type="button" data-act="delno">Нет</button>'
+               : '<button class="btn icon" type="button" data-act="delask" aria-label="Удалить чек">' + ICON.trash + '</button>') + '</li>';
+      }).join('') + '</ul>';
+  }
+  function copyHTML(text) {
+    return head('Скопируйте текст', 'Браузер не дал скопировать сам. Текст выделен, нажмите «Копировать» в меню.') +
+      '<textarea class="in" id="copyArea" readonly data-autofocus>' + esc(text) + '</textarea>';
+  }
+
+  /* ---------- copy ---------- */
+  function estText(e) {
+    var c = calc(e);
+    var lines = e.items.map(function (l, i) {
+      var p = pctOf(l), s = (i + 1) + '. ' + l.name + '\n   ' + fmtQ(l.qty) + ' ' + l.unit + ' × ' + rub(l.price);
+      if (p) s += ' + ' + p + '% (' + l.mods.map(function (id) { return COEF[id] ? COEF[id].n.toLowerCase() : ''; }).join(', ') + ')';
+      return s + ' = ' + rub(lineTotal(l));
+    });
+    var out = [e.title, ''].concat(lines, ['', 'Работы: ' + rub(c.base)]);
+    if (c.mark) out.push('Наценки: ' + rub(c.mark));
+    out.push('Итого: от ' + rub(c.total), 'Материалы и запчасти оплачиваются отдельно.');
+    return out.join('\n').replace(/[  ]/g, ' ');
+  }
+  function copyEst() {
+    var text = estText(S.cur);
+    var fail = function () { openModal(copyHTML(text)); var a = $('#copyArea'); if (a) { a.focus(); a.select(); } };
+    try {
+      navigator.clipboard.writeText(text).then(function () { toast('Чек скопирован'); }, fail);
+    } catch (_) { fail(); }
+  }
+
+  /* ---------- toast ---------- */
+  var toastTimer = null;
+  function toast(msg) {
+    var t = $('#toast');
+    t.textContent = msg; t.hidden = false;
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(function () { t.hidden = true; }, 2200);
+  }
+
+  /* ---------- estimate sheet (phones) ---------- */
+  function setSheet(open) {
+    $('#est').classList.toggle('open', open);
+    $('#estBack').hidden = !open;
+    if (M.hidden) document.body.classList.toggle('lock', open);
+    if (open) $('#est').focus();
+    else $('#dock').focus();
+  }
+
+  /* ---------- events ---------- */
+  $('#chips').addEventListener('click', function (e) {
+    var b = e.target.closest('[data-sec]'); if (!b) return;
+    S.sec = b.getAttribute('data-sec'); S.shown = 30;
+    renderChips(); renderList();
+    window.scrollTo(0, 0);
+  });
+  var qTimer = null;
+  $('#q').addEventListener('input', function (e) {
+    var v = e.target.value;
+    clearTimeout(qTimer);
+    qTimer = setTimeout(function () { S.q = v; S.shown = 30; renderList(); }, 120);
+  });
+  $('#q').addEventListener('keydown', function (e) { if (e.key === 'Enter') e.target.blur(); });
+  $('#btnReset').addEventListener('click', function () {
+    S.q = ''; S.sec = ''; S.shown = 30; $('#q').value = '';
+    renderChips(); renderList();
+  });
+  $('#more').addEventListener('click', function () { S.shown += 30; renderList(); });
+  $('#list').addEventListener('toggle', function (e) {
+    var d = e.target.getAttribute && e.target.getAttribute('data-d');
+    if (d) { if (e.target.open) S.openDet[d] = 1; else delete S.openDet[d]; }
+  }, true);
+  $('#list').addEventListener('click', function (e) {
+    var b = e.target.closest('[data-act]'); if (!b) return;
+    var card = b.closest('.card'); if (!card) return;
+    var it = getItem(card.getAttribute('data-id')); if (!it) return;
+    var a = b.getAttribute('data-act');
+    if (a === 'add') addItem(it);
+    else if (a === 'inc') stepItem(it, 1);
+    else if (a === 'dec') stepItem(it, -1);
+    else if (a === 'price' || a === 'edit') {
+      openModal(itemFormHTML(it), it.custom ? { edit: it.id } : { itemId: it.id });
+    }
+    else if (a === 'rel') openModal(relHTML({ itemId: it.id }), { rel: { itemId: it.id } });
+  });
+
+  $('#estTitle').addEventListener('input', function (e) { S.cur.title = e.target.value; touchEst(true); });
+  $('#estTitle').addEventListener('blur', function (e) {
+    if (!e.target.value.trim()) { S.cur.title = defTitle(); e.target.value = S.cur.title; touchEst(true); }
+  });
+  $('#btnMy').addEventListener('click', function () { S.delAsk = null; openModal(myHTML(), { my: 1 }); });
+  $('#btnNew').addEventListener('click', newEstimate);
+  $('#btnMemo').addEventListener('click', function () { openModal(memoHTML()); });
+  $('#btnCustom').addEventListener('click', function () { openModal(customHTML(), { custom: 1 }); });
+  $('#btnAddItem').addEventListener('click', function () { openModal(itemFormHTML(null), { add: 1 }); });
+  $('#btnHidden').addEventListener('click', function () { openModal(hiddenHTML(), { hiddenList: 1 }); });
+  $('#dock').addEventListener('click', function () { setSheet(true); });
+  $('#estBack').addEventListener('click', function () { setSheet(false); });
+  $('#btnEstClose').addEventListener('click', function () { setSheet(false); });
+  $('#btnCopy').addEventListener('click', copyEst);
+  $('#btnClear').addEventListener('click', function () { $('#clearAsk').hidden = false; });
+  $('#clearNo').addEventListener('click', function () { $('#clearAsk').hidden = true; });
+  $('#clearYes').addEventListener('click', function () {
+    S.cur.items = []; $('#clearAsk').hidden = true; touchEst();
+  });
+
+  $('#estList').addEventListener('click', function (e) {
+    var b = e.target.closest('[data-act]'); if (!b) return;
+    var li = b.closest('.line'), l = findLine(li.getAttribute('data-k')); if (!l) return;
+    var a = b.getAttribute('data-act');
+    if (a === 'del') { S.cur.items = S.cur.items.filter(function (x) { return x !== l; }); touchEst(); }
+    else if (a === 'reset') {
+      l.price = l.base; li.querySelector('.in-price').value = l.base;
+      refreshLine(li, l); touchEst(true);
+    }
+    else if (a === 'rel') openModal(relHTML({ k: l.k }), { rel: { k: l.k } });
+  });
+  function refreshLine(li, l) {
+    li.querySelector('.ltot').textContent = 'от ' + rub(lineTotal(l));
+    li.querySelector('.reset').hidden = !(l.base != null && num(l.price) !== num(l.base));
+    refreshTotals();
+  }
+  $('#estList').addEventListener('input', function (e) {
+    var inp = e.target; if (!inp.classList.contains('in')) return;
+    var li = inp.closest('.line'), l = findLine(li.getAttribute('data-k')); if (!l) return;
+    if (inp.classList.contains('in-price')) l.price = Math.max(0, num(inp.value));
+    else l.qty = Math.max(0, num(inp.value));
+    refreshLine(li, l);
+    touchEst(true);
+  });
+
+  MB.addEventListener('click', function (e) {
+    var b = e.target.closest('[data-act]'); if (!b) return;
+    var a = b.getAttribute('data-act');
+    if (b.hasAttribute('data-confirm') && !b.getAttribute('data-armed')) {
+      b.setAttribute('data-armed', '1'); b.textContent = 'Нажмите ещё раз, чтобы удалить'; return;
+    }
+    if (a === 'close') return closeModal();
+    if (a === 'orderDel' && mctx && mctx.order) {
+      var odid = mctx.order;
+      S.orders = S.orders.filter(function (x) { return x.id !== odid; });
+      delete S.dirty['o:' + odid]; S.gone['o:' + odid] = 1;
+      scheduleSave(); closeModal(); renderOrders(); toast('Заказ удалён');
+      return;
+    }
+    if (a === 'hideItem' && mctx && mctx.itemId) {
+      S.hidden[mctx.itemId] = 1; markDirty('@settings'); scheduleSave();
+      closeModal(); renderChips(); renderList(); toast('Позиция удалена из прайса');
+      return;
+    }
+    if (a === 'itemDel' && mctx && mctx.edit) {
+      var did = mctx.edit;
+      S.custom = S.custom.filter(function (c) { return c.id !== did; });
+      if (S.sec === 'mine' && !sections().some(function (s) { return s[0] === 'mine'; })) S.sec = '';
+      markDirty('@settings'); scheduleSave();
+      closeModal(); renderChips(); renderList(); toast('Позиция удалена из прайса');
+      return;
+    }
+    if (a === 'restore' || a === 'restoreAll') {
+      if (a === 'restore') delete S.hidden[b.getAttribute('data-id')]; else S.hidden = {};
+      markDirty('@settings'); scheduleSave();
+      renderChips(); renderList();
+      if (Object.keys(S.hidden).length) { MB.innerHTML = hiddenHTML(); } else { closeModal(); toast('Все позиции возвращены'); }
+      return;
+    }
+    if (a === 'relpick') { if (relBase(mctx.rel).it) { MB.innerHTML = pickHTML(mctx.rel); var rq = $('#relQ'); if (rq) rq.focus(); } return; }
+    if (a === 'relback') { MB.innerHTML = relHTML(mctx.rel); return; }
+    if (a === 'linkpick') {
+      var lb = relBase(mctx.rel); if (!lb.it) return;
+      var lid = b.getAttribute('data-id'), larr = ownRels(lb.it);
+      if (larr.indexOf(lid) < 0) larr.push(lid);
+      saveRels(lb.it, larr);
+      $('#pickList').innerHTML = pickListHTML(lb.it, $('#relQ').value);
+      toast('Добавлено в смежные работы');
+      return;
+    }
+    if (a === 'unlink') {
+      var ub = relBase(mctx.rel); if (!ub.it) return;
+      var uid2 = b.getAttribute('data-id');
+      saveRels(ub.it, ownRels(ub.it).filter(function (x) { return x !== uid2; }));
+      MB.innerHTML = relHTML(mctx.rel);
+      return;
+    }
+    if (a === 'relreset') {
+      var rb = relBase(mctx.rel); if (!rb.it) return;
+      delete S.rels[rb.it.id]; markDirty('@settings'); scheduleSave();
+      MB.innerHTML = relHTML(mctx.rel);
+      return;
+    }
+    if (a === 'reladd') {
+      var it = getItem(b.getAttribute('data-id')); if (!it) return;
+      addItem(it);
+      var id = b.getAttribute('data-id');
+      MB.innerHTML = relHTML(mctx.rel);
+      var nb = MB.querySelector('[data-act="reladd"][data-id="' + id + '"]'); if (nb) nb.focus();
+      return;
+    }
+    if (a === 'newest') { closeModal(); newEstimate(); return; }
+    var row = b.closest('[data-eid]'), eid = row && row.getAttribute('data-eid');
+    if (a === 'openest') {
+      var est = S.ests.filter(function (x) { return x.id === eid; })[0];
+      if (est) { openEstimate(est); closeModal(); }
+    } else if (a === 'delask') { S.delAsk = eid; MB.innerHTML = myHTML(); }
+    else if (a === 'delno') { S.delAsk = null; MB.innerHTML = myHTML(); }
+    else if (a === 'delyes') { S.delAsk = null; removeEstimate(eid); MB.innerHTML = myHTML(); }
+    else if (a === 'editReset' && mctx && mctx.itemId) {
+      delete S.edits[mctx.itemId]; markDirty('@settings'); scheduleSave();
+      closeModal(); renderChips(); renderList(); toast('Позиция возвращена к исходной');
+    }
+  });
+  MB.addEventListener('change', function (e) {
+    var cb = e.target; if (!cb.getAttribute || !cb.getAttribute('data-coef') || !mctx || !mctx.rel) return;
+    var ctx = mctx.rel;
+    var l = ctx.k ? findLine(ctx.k) : S.cur.items.filter(function (x) { return x.id === ctx.itemId; })[0];
+    if (!l) return;
+    var id = cb.getAttribute('data-coef'), i = l.mods.indexOf(id);
+    if (cb.checked && i < 0) l.mods.push(id);
+    if (!cb.checked && i >= 0) l.mods.splice(i, 1);
+    touchEst();
+  });
+  MB.addEventListener('input', function (e) {
+    if (e.target.id !== 'relQ' || !mctx || !mctx.rel) return;
+    var pb = relBase(mctx.rel);
+    if (pb.it) $('#pickList').innerHTML = pickListHTML(pb.it, e.target.value);
+  });
+  MB.addEventListener('submit', function (e) {
+    e.preventDefault();
+    if (e.target.id === 'customForm') {
+      var name = $('#cName').value.trim(), price = num($('#cPrice').value), qty = num($('#cQty').value), unit = $('#cUnit').value;
+      var err = !name ? 'Введите название работы.' : !(qty > 0) ? 'Количество должно быть больше нуля.' : (price < 0 || $('#cPrice').value === '') ? 'Укажите цену, можно 0.' : '';
+      if (err) { var el = $('#cErr'); el.textContent = err; el.hidden = false; return; }
+      var line;
+      if ($('#cSave').checked) {
+        var c = { id: 'u_' + uid(), name: name, unit: unit, price: price, desc: 'Своя позиция.' };
+        S.custom.push(c); markDirty('@settings');
+        line = mkLine(customItem(c), qty);
+        renderChips();
+      } else {
+        line = { k: uid(), id: null, name: name, unit: unit, base: null, price: price, qty: qty, mods: [] };
+      }
+      S.cur.items.push(line);
+      closeModal(); touchEst(); renderList();
+      toast('Позиция добавлена в чек');
+    } else if (e.target.id === 'orderForm') {
+      var oAddr = $('#oAddr').value.trim(), oWorks = $('#oWorks').value.trim(), oSumV = $('#oSum').value, oDate = $('#oDate').value;
+      var oerr = !oDate ? 'Укажите дату.' : !oAddr ? 'Введите адрес.' : (oSumV === '' || num(oSumV) < 0) ? 'Укажите сумму, можно 0.' : '';
+      if (oerr) { var oel = $('#oErr'); oel.textContent = oerr; oel.hidden = false; return; }
+      var oDone = $('#oDone').checked, ord = mctx && mctx.order ? S.orders.filter(function (x) { return x.id === mctx.order; })[0] : null;
+      if (!ord) { ord = { id: uid(), created: Date.now() }; S.orders.push(ord); }
+      var wasDone = ord.done;
+      ord.date = oDate; ord.time = $('#oTime').value; ord.addr = oAddr; ord.phone = $('#oPhone').value.trim(); ord.name = $('#oName').value.trim();
+      ord.works = oWorks; ord.sum = num(oSumV); ord.done = oDone;
+      if (oDone && !wasDone) ord.doneAt = Date.now(); else if (!oDone) ord.doneAt = null;
+      var oIsEdit = !!(mctx && mctx.order);
+      markDirty('o:' + ord.id); scheduleSave();
+      S.ord.anchor = oDate;
+      closeModal(); renderOrders();
+      toast(oIsEdit ? 'Заказ сохранён' : 'Заказ добавлен');
+    } else if (e.target.id === 'itemForm') {
+      var nm = $('#iName').value.trim(), pv = $('#iPrice').value, ie = $('#iErr');
+      var msg = !nm ? 'Введите название работы.' : (pv === '' || num(pv) < 0) ? 'Укажите цену, можно 0.' : '';
+      if (msg) { ie.textContent = msg; ie.hidden = false; return; }
+      var data = { name: nm, sec: $('#iSec').value, sub: $('#iSub').value.trim(), unit: $('#iUnit').value, price: num(pv), desc: $('#iDesc').value.trim(), c: $('#iCond').value.trim() };
+      var isEdit = !!(mctx && (mctx.edit || mctx.itemId));
+      if (mctx && mctx.edit) {
+        S.custom.forEach(function (c) {
+          if (c.id === mctx.edit) { c.name = data.name; c.sec = data.sec; c.sub = data.sub || 'Мои позиции'; c.unit = data.unit; c.price = data.price; c.desc = data.desc; c.c = data.c; delete c.a; }
+        });
+      } else if (mctx && mctx.itemId) {
+        var o = CATMAP[mctx.itemId], ed = {};
+        if (data.name !== o.name) ed.name = data.name;
+        if (data.sec !== o.sec) ed.sec = data.sec;
+        if (data.sub && data.sub !== o.sub) ed.sub = data.sub;
+        if (data.unit !== o.unit) ed.unit = data.unit;
+        if (data.price !== o.price) ed.price = data.price;
+        if (data.desc && data.desc !== o.desc) ed.desc = data.desc;
+        if (data.c !== (o.opt.c || '')) ed.c = data.c;
+        if (Object.keys(ed).length) S.edits[o.id] = ed; else delete S.edits[o.id];
+      } else {
+        data.id = 'u_' + uid();
+        data.sub = data.sub || 'Мои позиции';
+        S.custom.push(data);
+      }
+      if (S.sec && S.sec !== data.sec) S.sec = data.sec;
+      markDirty('@settings'); scheduleSave();
+      closeModal(); renderChips(); renderList();
+      toast(isEdit ? 'Позиция сохранена' : 'Позиция добавлена в прайс');
+    }
+  });
+  M.addEventListener('click', function (e) { if (e.target === M) closeModal(); });
+  document.addEventListener('keydown', function (e) {
+    if (e.key !== 'Escape') return;
+    if (!M.hidden) closeModal();
+    else if ($('#est').classList.contains('open')) setSheet(false);
+  });
+
+  /* keep the sticky offset in step with the header height */
+  function syncTop() { document.documentElement.style.setProperty('--top-h', $('#top').offsetHeight + 'px'); }
+  if (window.ResizeObserver) new ResizeObserver(syncTop).observe($('#top')); else window.addEventListener('resize', syncTop);
+  syncTop();
+
+  /* ---------- orders ---------- */
+  function pad(n) { return (n < 10 ? '0' : '') + n; }
+  function ymd(d) { return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate()); }
+  function todayStr() { return ymd(new Date()); }
+  function dOf(s) { var p = String(s).split('-'); return new Date(+p[0], +p[1] - 1, +p[2], 12, 0, 0); }
+  function cap(s) { return s.charAt(0).toUpperCase() + s.slice(1); }
+  function trimDot(s) { return s.replace(/\s*г\.$/, '').replace(/\.$/, ''); }
+  function pl(n, one, few, many) {
+    var m = n % 10, h = n % 100;
+    return m === 1 && h !== 11 ? one : (m >= 2 && m <= 4 && (h < 10 || h >= 20)) ? few : many;
+  }
+  var fDayLong = new Intl.DateTimeFormat('ru-RU', { weekday: 'long', day: 'numeric', month: 'long' });
+  var fDayShort = new Intl.DateTimeFormat('ru-RU', { weekday: 'short', day: 'numeric', month: 'long' });
+  var fDM = new Intl.DateTimeFormat('ru-RU', { day: 'numeric', month: 'short' });
+  var fMonth = new Intl.DateTimeFormat('ru-RU', { month: 'long', year: 'numeric' });
+  var fMon = new Intl.DateTimeFormat('ru-RU', { month: 'short' });
+  var PER = [['day', 'День'], ['week', 'Неделя'], ['month', 'Месяц'], ['all', 'Всё']];
+  var WD = ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'];
+
+  function range(p, anchor) {
+    var d = dOf(anchor), a, b, label;
+    if (p === 'all') return { from: '0000-00-00', to: '9999-99-99', label: 'За всё время' };
+    if (p === 'day') { a = b = d; label = cap(fDayLong.format(d)); }
+    else if (p === 'week') {
+      a = new Date(d.getTime()); a.setDate(a.getDate() - (a.getDay() + 6) % 7);
+      b = new Date(a.getTime()); b.setDate(b.getDate() + 6);
+      label = trimDot(fDM.format(a)) + ' – ' + trimDot(fDM.format(b)) + ', ' + b.getFullYear();
+    } else {
+      a = new Date(d.getFullYear(), d.getMonth(), 1, 12);
+      b = new Date(d.getFullYear(), d.getMonth() + 1, 0, 12);
+      label = cap(trimDot(fMonth.format(d)));
+    }
+    return { from: ymd(a), to: ymd(b), label: label, a: a, b: b };
+  }
+  function shiftAnchor(delta) {
+    var d = dOf(S.ord.anchor), p = S.ord.period;
+    if (p === 'day') d.setDate(d.getDate() + delta);
+    else if (p === 'week') d.setDate(d.getDate() + 7 * delta);
+    else if (p === 'month') { d.setDate(1); d.setMonth(d.getMonth() + delta); }
+    S.ord.anchor = ymd(d);
+  }
+  function ordSort(a, b) { return (a.date + (a.time || '')).localeCompare(b.date + (b.time || '')) || (a.created || 0) - (b.created || 0); }
+  function orderDoc(o) { return { date: o.date, time: o.time || '', addr: o.addr, phone: o.phone || '', name: o.name || '', works: o.works, sum: o.sum, done: !!o.done, doneAt: o.doneAt || null, created: o.created || 0 }; }
+  function ordStats(list) {
+    var r = { done: 0, pend: 0, nd: 0, np: 0, avg: 0 };
+    list.forEach(function (o) { if (o.done) { r.done += num(o.sum); r.nd++; } else { r.pend += num(o.sum); r.np++; } });
+    r.avg = r.nd ? Math.round(r.done / r.nd) : 0;
+    return r;
+  }
+  function fmtK(n) { return n >= 1000 ? (Math.round(n / 100) / 10).toString().replace('.', ',') + 'к' : String(Math.round(n)); }
+
+  function buckets(r, list) {
+    var p = S.ord.period, out = [], map = {};
+    if (p === 'day') return null;
+    if (p === 'week' || p === 'month') {
+      var d = new Date(r.a.getTime());
+      while (ymd(d) <= r.to) {
+        var b = { label: p === 'week' ? WD[(d.getDay() + 6) % 7] : String(d.getDate()), show: p === 'week' || d.getDate() === 1 || d.getDate() % 5 === 0, tip: cap(fDayShort.format(d)), done: 0, pend: 0 };
+        map[ymd(d)] = b; out.push(b);
+        d.setDate(d.getDate() + 1);
+      }
+      list.forEach(function (o) { var bb = map[o.date]; if (bb) { if (o.done) bb.done += num(o.sum); else bb.pend += num(o.sum); } });
+    } else {
+      var ms = {};
+      list.forEach(function (o) { var k = o.date.slice(0, 7); ms[k] = ms[k] || { done: 0, pend: 0 }; if (o.done) ms[k].done += num(o.sum); else ms[k].pend += num(o.sum); });
+      Object.keys(ms).sort().slice(-12).forEach(function (k) {
+        var dd = dOf(k + '-01');
+        out.push({ label: trimDot(fMon.format(dd)), show: true, tip: cap(trimDot(fMonth.format(dd))), done: ms[k].done, pend: ms[k].pend });
+      });
+    }
+    return out;
+  }
+  function chartHTML(r, list) {
+    var bk = buckets(r, list);
+    if (!bk || !bk.length) return '';
+    var max = 0, best = null;
+    bk.forEach(function (b) { var t = b.done + b.pend; if (t > max) max = t; if (b.done > 0 && (!best || b.done > best.done)) best = b; });
+    if (!max) return '';
+    var title = S.ord.period === 'all' ? 'Заработок по месяцам' : 'Заработок по дням';
+    var showVal = bk.length <= 12;
+    var bars = bk.map(function (b) {
+      var t = b.done + b.pend, hh = Math.max(t / max * 82, t > 0 ? 2 : 0);
+      var tip = b.tip + ': выполнено ' + rub(b.done) + (b.pend ? ', ожидается ' + rub(b.pend) : '');
+      return '<div class="col" title="' + esc(tip) + '"><span class="val">' + (showVal && b.done > 0 ? fmtK(b.done) : '') + '</span>' +
+        '<div class="stack" style="height:' + hh.toFixed(1) + '%">' +
+        (b.pend > 0 ? '<div class="p" style="flex:' + b.pend + ' 1 0"></div>' : '') +
+        (b.done > 0 ? '<div class="d" style="flex:' + b.done + ' 1 0"></div>' : '') + '</div></div>';
+    }).join('');
+    var axis = bk.map(function (b) { return '<span>' + (b.show ? esc(b.label) : '') + '</span>'; }).join('');
+    var aria = title + '. ' + (best ? 'Лучший: ' + best.tip + ', ' + rub(best.done) : '');
+    return '<h3>' + title + '</h3><div role="img" aria-label="' + esc(aria) + '"><div class="bars">' + bars + '</div><div class="axis">' + axis + '</div></div>' +
+      '<div class="legend"><span><i class="sd"></i>Выполнено</span><span><i class="sp"></i>Ожидается</span>' + (best ? '<span>Лучший: ' + esc(best.tip) + ', ' + rub(best.done) + '</span>' : '') + '</div>';
+  }
+
+  function ordCard(o) {
+    var tel = (o.phone || '').replace(/[^\d+]/g, '');
+    var meta = [o.time ? esc(o.time) : '', o.name ? esc(o.name) : ''].filter(Boolean).join('</span><span>');
+    return '<article class="ord' + (o.done ? ' done' : '') + '" data-oid="' + esc(o.id) + '">' +
+      '<label class="doneck"><input type="checkbox" data-done' + (o.done ? ' checked' : '') + ' aria-label="Заказ выполнен: ' + esc(o.addr) + '">' +
+      '<span class="ck" aria-hidden="true"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12 5 5 9-10"/></svg></span></label>' +
+      '<div class="ord-body">' +
+      '<div class="ord-top"><b class="ord-addr">' + esc(o.addr) + '</b><span class="ord-sum">' + rub(num(o.sum)) + '</span></div>' +
+      (meta ? '<div class="ord-meta"><span>' + meta + '</span></div>' : '') +
+      (o.phone ? '<div class="ord-phone"><a href="tel:' + esc(tel) + '">' + esc(o.phone) + '</a><button class="btn sm" type="button" data-act="copyphone" data-phone="' + esc(o.phone) + '">Копировать</button></div>' : '') +
+      '<p class="ord-works">' + esc(o.works) + '</p>' +
+      '<div class="ord-foot"><span class="tag' + (o.done ? ' ok' : '') + '">' + (o.done ? 'Выполнен' : 'Не выполнен') + '</span><button class="link" type="button" data-act="editorder">Изменить</button></div>' +
+      '</div></article>';
+  }
+  function ordListHTML(list) {
+    var st = S.ord.status;
+    var arr = list.filter(function (o) { return st === 'all' || (st === 'done' ? o.done : !o.done); });
+    if (!arr.length) {
+      var none = !S.orders.length;
+      return '<div class="empty"><strong>' + (none ? 'Заказов пока нет' : 'Здесь пусто') + '</strong><span class="hint">' +
+        (none ? 'Добавьте первый заказ: адрес, телефон клиента, работы и сумму.' : 'В этом периоде нет подходящих заказов. Выберите другой период или добавьте заказ.') +
+        '</span><button class="btn primary" type="button" data-act="addorder">' + ICON.plus + ' Новый заказ</button></div>';
+    }
+    if (S.ord.period === 'all') arr.sort(function (a, b) { return ordSort(b, a); }); else arr.sort(ordSort);
+    var h = '', last = '';
+    arr.forEach(function (o) {
+      if (S.ord.period !== 'day' && o.date !== last) {
+        last = o.date;
+        var ds = 0; arr.forEach(function (x) { if (x.date === o.date && x.done) ds += num(x.sum); });
+        h += '<h2 class="grp">' + esc(cap(fDayShort.format(dOf(o.date)))) + (ds ? ' · ' + rub(ds) : '') + '</h2>';
+      }
+      h += ordCard(o);
+    });
+    return h;
+  }
+  function renderOrders() {
+    var o = S.ord, r = range(o.period, o.anchor), list = S.orders.filter(function (x) { return x.date >= r.from && x.date <= r.to; });
+    var st = ordStats(list), total = st.nd + st.np;
+    $('#seg').innerHTML = PER.map(function (p) { return '<button type="button" class="chip' + (o.period === p[0] ? ' on' : '') + '" data-per="' + p[0] + '">' + p[1] + '</button>'; }).join('');
+    $('#ordLabel').textContent = r.label;
+    $('#ordPrev').hidden = $('#ordNext').hidden = $('#ordToday').hidden = o.period === 'all';
+    $('#ordStats').innerHTML =
+      '<div class="stat main"><small>Заработано</small><strong>' + rub(st.done) + '</strong><span>' + (st.nd ? 'выполнено ' + st.nd + ' из ' + total : 'выполненных заказов нет') + '</span></div>' +
+      '<div class="stat"><small>Ожидается</small><strong>' + rub(st.pend) + '</strong><span>' + st.np + ' ' + pl(st.np, 'заказ', 'заказа', 'заказов') + '</span></div>' +
+      '<div class="stat"><small>Средний чек</small><strong>' + (st.nd ? rub(st.avg) : '—') + '</strong><span>по выполненным</span></div>' +
+      '<div class="stat"><small>Всего</small><strong>' + total + '</strong><span>' + pl(total, 'заказ', 'заказа', 'заказов') + '</span></div>';
+    var ch = chartHTML(r, list);
+    $('#ordChart').hidden = !ch;
+    $('#ordChart').innerHTML = ch;
+    $('#ordFilter').innerHTML = [['all', 'Все'], ['open', 'Не выполнены'], ['done', 'Выполнены']].map(function (f) {
+      return '<button type="button" class="chip' + (o.status === f[0] ? ' on' : '') + '" data-st="' + f[0] + '">' + f[1] + '</button>';
+    }).join('');
+    $('#ordList').innerHTML = ordListHTML(list);
+    var open = S.orders.filter(function (x) { return !x.done; }).length;
+    $('#ordBadge').textContent = open ? String(open) : '';
+  }
+
+  function defaultOrderDate() {
+    var r = range(S.ord.period, S.ord.anchor), t = todayStr();
+    return (t >= r.from && t <= r.to) ? t : r.from;
+  }
+  function orderFormHTML(o, pre) {
+    var d = o || pre || {};
+    return head(o ? 'Изменить заказ' : 'Новый заказ') +
+      '<form class="m-form" id="orderForm" novalidate>' +
+      '<div class="two"><label class="fld"><span>Дата</span><input class="in" id="oDate" type="date" value="' + esc(d.date || todayStr()) + '"></label>' +
+      '<label class="fld"><span>Время (необязательно)</span><input class="in" id="oTime" type="time" value="' + esc(d.time || '') + '"></label></div>' +
+      '<label class="fld"><span>Адрес</span><input class="in txt" id="oAddr" maxlength="200" autocomplete="off" placeholder="Улица, дом, квартира" value="' + esc(d.addr || '') + '" data-autofocus></label>' +
+      '<div class="two"><label class="fld"><span>Телефон клиента</span><input class="in" id="oPhone" type="tel" inputmode="tel" maxlength="30" autocomplete="off" placeholder="+7" value="' + esc(d.phone || '') + '"></label>' +
+      '<label class="fld"><span>Имя клиента</span><input class="in txt" id="oName" maxlength="80" autocomplete="off" value="' + esc(d.name || '') + '"></label></div>' +
+      '<label class="fld"><span>Работы</span><textarea class="in area" id="oWorks" maxlength="600" placeholder="Что нужно сделать">' + esc(d.works || '') + '</textarea></label>' +
+      '<label class="fld"><span>Сумма работ, ₽</span><input class="in" id="oSum" type="number" inputmode="decimal" min="0" step="any" value="' + esc(d.sum != null ? d.sum : '') + '"></label>' +
+      '<label class="chk"><input type="checkbox" id="oDone"' + (d.done ? ' checked' : '') + '><span class="chk-t"><b>Заказ выполнен</b><small>Сумма попадёт в заработок за дату заказа.</small></span></label>' +
+      '<p class="err" id="oErr" role="alert" hidden></p>' +
+      '<div class="m-actions"><button class="btn" type="button" data-act="close">Отмена</button><button class="btn primary" type="submit">' + (o ? 'Сохранить' : ICON.plus + ' Добавить') + '</button></div>' +
+      (o ? '<div class="m-actions"><button class="btn danger" type="button" data-act="orderDel" data-confirm="1">Удалить заказ</button></div>' : '') +
+      '</form>';
+  }
+  function copyPlain(text, msg) {
+    var fail = function () { toast('Не удалось скопировать: ' + text); };
+    try { navigator.clipboard.writeText(text).then(function () { toast(msg); }, fail); } catch (_) { fail(); }
+  }
+  function setTab(t) {
+    S.tab = t;
+    var isP = t === 'price';
+    $('#pagePrice').hidden = !isP; $('#pageOrders').hidden = isP;
+    $('#priceHead').hidden = !isP; $('#ordHead').hidden = isP;
+    $('#dock').hidden = !isP; $('#ordAdd').hidden = isP;
+    $('#tabPrice').setAttribute('aria-selected', isP ? 'true' : 'false');
+    $('#tabOrders').setAttribute('aria-selected', isP ? 'false' : 'true');
+    if (isP) { $('#est').classList.remove('open'); }
+    if (!isP) { $('#est').classList.remove('open'); $('#estBack').hidden = true; if (M.hidden) document.body.classList.remove('lock'); renderOrders(); }
+    try { localStorage.setItem('smeta-tab', t); } catch (_) {}
+    window.scrollTo(0, 0);
+    syncTop();
+  }
+  $('#tabPrice').addEventListener('click', function () { setTab('price'); });
+  $('#tabOrders').addEventListener('click', function () { setTab('orders'); });
+  $('#seg').addEventListener('click', function (e) {
+    var b = e.target.closest('[data-per]'); if (!b) return;
+    S.ord.period = b.getAttribute('data-per'); renderOrders(); syncTop();
+  });
+  $('#ordPrev').addEventListener('click', function () { shiftAnchor(-1); renderOrders(); });
+  $('#ordNext').addEventListener('click', function () { shiftAnchor(1); renderOrders(); });
+  $('#ordToday').addEventListener('click', function () { S.ord.anchor = todayStr(); S.ord.period = 'day'; renderOrders(); syncTop(); });
+  $('#ordFilter').addEventListener('click', function (e) {
+    var b = e.target.closest('[data-st]'); if (!b) return;
+    S.ord.status = b.getAttribute('data-st'); renderOrders();
+  });
+  function openNewOrder(pre) { openModal(orderFormHTML(null, pre || { date: defaultOrderDate() }), { order: null }); }
+  $('#ordAdd').addEventListener('click', function () { openNewOrder(); });
+  $('#ordAddTop').addEventListener('click', function () { openNewOrder(); });
+  $('#ordList').addEventListener('click', function (e) {
+    var b = e.target.closest('[data-act]'); if (!b) return;
+    var a = b.getAttribute('data-act');
+    if (a === 'addorder') return openNewOrder();
+    if (a === 'copyphone') return copyPlain(b.getAttribute('data-phone'), 'Номер скопирован');
+    var card = b.closest('[data-oid]'), o = card && S.orders.filter(function (x) { return x.id === card.getAttribute('data-oid'); })[0];
+    if (a === 'editorder' && o) openModal(orderFormHTML(o), { order: o.id });
+  });
+  $('#ordList').addEventListener('change', function (e) {
+    var cb = e.target; if (!cb.hasAttribute || !cb.hasAttribute('data-done')) return;
+    var card = cb.closest('[data-oid]'), o = S.orders.filter(function (x) { return x.id === card.getAttribute('data-oid'); })[0];
+    if (!o) return;
+    o.done = cb.checked; o.doneAt = cb.checked ? Date.now() : null;
+    markDirty('o:' + o.id); scheduleSave(); renderOrders();
+  });
+  $('#btnToOrder').addEventListener('click', function () {
+    var e = S.cur, c = calc(e);
+    var works = e.items.map(function (l) { return l.name + (num(l.qty) !== 1 ? ' ×' + fmtQ(l.qty) : ''); }).join('; ');
+    setSheet(false);
+    setTab('orders');
+    openNewOrder({ date: defaultOrderDate(), works: works, sum: c.total });
+  });
+
+  /* ---------- startup ---------- */
+  function init() {
+    var loc = loadLocal();
+    S.firstRun = false;
+    if (loc && loc.orders && !(loc.ests && loc.ests.length)) S.orders = loc.orders;
+    if (loc && loc.ests && loc.ests.length) {
+      S.orders = Array.isArray(loc.orders) ? loc.orders : [];
+      S.prices = loc.prices || {}; S.edits = loc.edits || {}; S.rels = loc.rels || {}; S.custom = loc.custom || []; S.hidden = loc.hidden || {}; S.ests = loc.ests;
+      migratePrices();
+      S.cur = S.ests.filter(function (e) { return e.id === loc.cur; })[0] || S.ests[0];
+    } else {
+      S.firstRun = true;
+      var ex = exampleEst(); S.ests = [ex]; S.cur = ex;
+    }
+    $('#estTitle').value = S.cur.title;
+    setStatus(S.firstRun ? 'draft' : (S.localOk ? 'local' : 'none'));
+    S.ord.anchor = todayStr();
+    renderChips(); renderList(); renderEst(); renderOrders();
+    var tb = 'price'; try { tb = localStorage.getItem('smeta-tab') || 'price'; } catch (_) {}
+    setTab(tb === 'orders' ? 'orders' : 'price');
+    connectDb();
+  }
+
+  function connectDb() {
+    if (!(window.claude && window.claude.use)) return;
+    Promise.all([window.claude.use('db'), window.claude.use('user')]).then(function (r) {
+      var db = r[0], user = r[1];
+      if (!db || !user) return null;
+      return user.id().then(function (id) {
+        if (!id) return null;
+        var col = db.collection('data/users/' + id);
+        return col.get().then(function (snap) { return { db: db, id: String(id), docs: snap.docs }; });
+      });
+    }).then(function (res) {
+      if (!res) return;
+      var settings = null, rests = [], rords = [];
+      res.docs.forEach(function (d) {
+        var data = d.data() || {};
+        if (d.id === 'settings') settings = data;
+        else if (d.id.indexOf('ord_') === 0 && data.addr != null) { var od = orderDoc(data); od.id = d.id.slice(4); rords.push(od); }
+        else if (d.id.indexOf('est_') === 0 && Array.isArray(data.items)) rests.push({ id: d.id.slice(4), title: data.title || '', items: data.items, updated: data.updated || 0 });
+      });
+      S.db = res.db; S.uid = res.id;
+      var touched = Object.keys(S.dirty).length > 0;
+      var hasRemote = settings || rests.length || rords.length;
+      if (hasRemote && !touched) {
+        if (settings) { S.prices = settings.prices || {}; S.edits = settings.edits || {}; S.rels = settings.rels || {}; S.custom = settings.custom || []; S.hidden = settings.hidden || {}; migratePrices(); }
+        if (rests.length) {
+          S.ests = rests.sort(function (a, b) { return b.updated - a.updated; });
+          S.cur = S.ests.filter(function (e) { return settings && e.id === settings.cur; })[0] || S.ests[0];
+        }
+        if (rords.length) S.orders = rords;
+        persistLocal();
+        $('#estTitle').value = S.cur.title;
+        renderChips(); renderList(); renderEst(); renderOrders();
+        setStatus('saved');
+      } else {
+        if (hasRemote) {
+          rests.forEach(function (re) { if (!S.ests.some(function (e) { return e.id === re.id; })) S.ests.push(re); });
+        }
+        rords.forEach(function (ro) { if (!S.orders.some(function (o) { return o.id === ro.id; })) S.orders.push(ro); });
+        markDirty('@settings');
+        S.orders.forEach(function (o) { markDirty('o:' + o.id); });
+        renderOrders();
+        S.ests.forEach(function (e) { markDirty(e.id); });
+        persistLocal();
+        chain = chain.then(flush).catch(function () {});
+      }
+    }).catch(function () { S.db = null; setStatus(S.localOk ? 'local' : 'none'); });
+  }
+
+  init();
+})();
+</script>
+
+</body>
+</html>
